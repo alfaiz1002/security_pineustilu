@@ -102,22 +102,49 @@ document.addEventListener('DOMContentLoaded', function(){
     function updateReschedulePreview(data) {
         const breakdown = data.breakdown;
 
-        // Update main price - THIS IS ONLY THE PAYABLE AMOUNT
-        document.getElementById('previewPrice').textContent = formatToRupiah(breakdown.total);
+        // Update main price with the payable amount (difference)
+        document.getElementById('previewPrice').textContent = formatToRupiah(breakdown.payable_amount);
 
-        // Update breakdown elements
-        document.getElementById('previewOriginalPrice').textContent = formatToRupiah(breakdown.original_price);
-        document.getElementById('previewRescheduleFee').textContent = formatToRupiah(breakdown.reschedule_fee);
-        document.getElementById('previewSeasonalCharge').textContent = formatToRupiah(breakdown.seasonal_charge);
-        document.getElementById('previewRescheduleExtraItems').textContent = formatToRupiah(breakdown.extra_items);
+        // Update breakdown elements for reschedule
+        const originalPriceEl = document.getElementById('previewOriginalPrice');
+        const newPriceEl = document.getElementById('previewNewPrice');
+        const differencePriceEl = document.getElementById('previewPriceDifference');
 
-        // Update fee color based on amount
-        const feeElement = document.getElementById('previewRescheduleFee');
-        feeElement.className = breakdown.reschedule_fee > 0 ? 'font-semibold text-orange-600' : 'font-semibold text-green-600';
+        if (originalPriceEl) {
+            originalPriceEl.textContent = formatToRupiah(breakdown.original_price);
+        }
 
-        // Update seasonal charge color
-        const seasonalElement = document.getElementById('previewSeasonalCharge');
-        seasonalElement.className = breakdown.seasonal_charge > 0 ? 'font-semibold text-red-600' : 'font-semibold text-green-600';
+        if (newPriceEl) {
+            newPriceEl.textContent = formatToRupiah(breakdown.new_price);
+        }
+
+        if (differencePriceEl) {
+            differencePriceEl.textContent = formatToRupiah(breakdown.price_difference);
+
+            // Color code the difference
+            if (breakdown.price_difference > 0) {
+                // Positive difference - need to pay more (red/orange)
+                differencePriceEl.className = 'font-semibold text-red-600';
+            } else if (breakdown.price_difference < 0) {
+                // Negative difference - getting refund (green)
+                differencePriceEl.className = 'font-semibold text-green-600';
+            } else {
+                // No difference (gray)
+                differencePriceEl.className = 'font-semibold text-gray-800';
+            }
+        }
+
+        // Update main preview price color based on whether payment is needed
+        const previewPriceEl = document.getElementById('previewPrice');
+        if (previewPriceEl) {
+            if (breakdown.payable_amount > 0) {
+                // Payment needed
+                previewPriceEl.className = 'text-2xl font-extrabold text-red-600';
+            } else {
+                // No payment needed
+                previewPriceEl.className = 'text-2xl font-extrabold text-green-600';
+            }
+        }
     }
 
     // Listen to date/unit changes

@@ -1118,15 +1118,17 @@ class BookingController extends Controller
 
     /**
      * Show the reschedule page.
-     * If code is provided via GET, lookup and show booking details.
+     * If code and email are provided via GET, lookup and show booking details.
+     * Email must match the booking's guest email.
      */
     public function showReschedulePage(Request $request): \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
     {
         $code = $request->input('code');
+        $email = $request->input('email');
         $booking = null;
         $error = null;
 
-        if ($code) {
+        if ($code && $email) {
             $booking = Booking::with([
                 'bookingDetails.unit.area',
                 'bookingOutbounds.outbound',
@@ -1135,16 +1137,22 @@ class BookingController extends Controller
 
             if (!$booking) {
                 $error = 'Kode booking tidak ditemukan. Pastikan kode yang Anda masukkan benar.';
+            } elseif (strtolower(trim($email)) !== strtolower(trim($booking->guest_email))) {
+                $error = 'Email tidak sesuai dengan email pada booking ini. Silakan periksa kembali email Anda.';
+                $booking = null;
             } elseif (!$booking->canBeRescheduled()) {
                 $error = 'Booking dengan status "' . $booking->status->label() . '" tidak dapat di-reschedule.';
                 $booking = null;
             }
+        } elseif ($code || $email) {
+            $error = 'Silakan masukkan kode booking dan email untuk melanjutkan.';
         }
 
         return view('reschedule', [
             'booking' => $booking,
             'error' => $error,
             'code' => $code,
+            'email' => $email,
         ]);
     }
 
@@ -1212,8 +1220,121 @@ class BookingController extends Controller
     }
 
     /**
+     * Estimate reschedule pricing without updating the booking.
+     * Returns the breakdown of old price, new price, and difference.
+     */
+    public function estimateReschedulePrice(Request $request, string $token): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'checkin' => ['required', 'date', 'after_or_equal:today'],
+            'checkout' => ['required', 'date', 'after:checkin'],
+            'unit_id' => ['required', 'integer', 'exists:area_units,id'],
+        ]);
+
+        try {
+            $booking = Booking::with(['bookingDetails'])->where('token_code', strtoupper(trim($token)))->first();
+
+            if (!$booking) {
+                return response()->json(['success' => false, 'message' => 'Booking tidak ditemukan'], 404);
+            }
+
+            if ($booking->booking_type !== 'glamping') {
+                return response()->json(['success' => false, 'message' => 'Hanya glamping yang bisa di-reschedule'], 400);
+            }
+
+            $detail = $booking->bookingDetails->first();
+            if (!$detail) {
+                return response()->json(['success' => false, 'message' => 'Detail booking tidak ditemukan'], 404);
+            }
+
+            $originalTotal = (float) $detail->total_price;
+
+            // Get new unit and validate availability
+            $unit = AreaUnit::query()->with(['area:id,slug,extra_charge_breakfast,extra_charge_full'])->findOrFail((int) $request->input('unit_id'));
+
+            $checkin = Carbon::parse($request->input('checkin'))->startOfDay();
+            $checkout = Carbon::parse($request->input('checkout'))->startOfDay();
+
+            // Check availability
+            try {
+                $this->assertUnitAvailable($unit->id, $checkin, $checkout);
+            } catch (\Exception $e) {
+                return response()->json(['success' => false, 'message' => 'Unit tidak tersedia untuk tanggal tersebut'], 400);
+            }
+
+            // Calculate new price using same logic as processReschedule
+            $guestCount = (int) $detail->number_of_people;
+
+            $pricing = $this->pricingService->getUnitBasePriceForRange($unit->id, $checkin, $checkout);
+            $basePrice = (float) ($pricing['total'] ?? 0.0);
+
+            // Reconstruct amenities from original note
+            $note = $detail && $detail->note ? json_decode($detail->note, true) : [];
+            $amenitiesBreakdown = $note['amenities_breakdown'] ?? [];
+
+            $amenityIds = array_values(array_filter(array_map(fn($i) => (int) ($i['id'] ?? 0), $amenitiesBreakdown)));
+            if (!empty($amenityIds)) {
+                $amenities = Item::with('prices')->whereIn('id', $amenityIds)->get();
+            } else {
+                $amenities = collect();
+            }
+
+            $extraChargeAmenities = 0.0;
+            foreach ($amenitiesBreakdown as $itemRow) {
+                $itemId = (int) ($itemRow['id'] ?? 0);
+                $qty = max(0, (int) ($itemRow['qty'] ?? 0));
+                if ($qty <= 0) continue;
+                $itemModel = $amenities->firstWhere('id', $itemId);
+                $latest = $itemModel?->prices->sortByDesc('created_at')->first();
+                $unitPrice = $latest ? (float) $latest->price : (float) ($itemRow['unit_price'] ?? 0.0);
+                $extraChargeAmenities += $unitPrice * $qty;
+            }
+
+            // Extra guest charge
+            $extraChargeMode = (string) ($note['extra_charge_mode'] ?? 'breakfast');
+            $defaultPeople = (int) ($unit->default_people ?? 0);
+            $extraPeople = max(0, $guestCount - $defaultPeople);
+            $fullRate = $unit->area && $unit->area->extra_charge_full !== null ? (float) $unit->area->extra_charge_full : 0.0;
+            $breakfastRate = $unit->area && $unit->area->extra_charge_breakfast !== null ? (float) $unit->area->extra_charge_breakfast : 0.0;
+            $selectedExtraRate = 0.0;
+            if ($extraPeople > 0) {
+                $selectedExtraRate = $extraChargeMode === 'full' ? $fullRate : $breakfastRate;
+            }
+            $extraChargeGuestMode = $extraPeople * $selectedExtraRate;
+
+            $totalExtraCharge = $extraChargeAmenities + $extraChargeGuestMode;
+            $newTotalPrice = $basePrice + $totalExtraCharge;
+
+            // Calculate difference
+            $priceDifference = $newTotalPrice - $originalTotal;
+
+            return response()->json([
+                'success' => true,
+                'breakdown' => [
+                    'original_price' => $originalTotal,
+                    'new_price' => $newTotalPrice,
+                    'price_difference' => $priceDifference,
+                    'base_price' => $basePrice,
+                    'extra_amenities' => $extraChargeAmenities,
+                    'extra_guest' => $extraChargeGuestMode,
+                    'total' => max(0, $priceDifference), // Only show positive difference or 0
+                    'payable_amount' => max(0, $priceDifference),
+                    // For backward compatibility with frontend expected format
+                    'reschedule_fee' => $priceDifference,
+                    'seasonal_charge' => 0,
+                    'extra_items' => $extraChargeAmenities,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Process reschedule submission from guest.
      * Updates booking detail with new dates/unit and recalculates price.
+     * If new price > old price: redirect to payment for difference
+     * If new price <= old price: redirect to confirmed page
      */
     public function processReschedule(Request $request, string $token): \Illuminate\Http\RedirectResponse
     {
@@ -1308,7 +1429,6 @@ class BookingController extends Controller
             $detail->check_out = $checkout->toDateString();
             $detail->number_of_people = $guestCount;
             $detail->total_extra_charge = $totalExtraCharge;
-            $detail->total_price = $newTotalPrice;
 
             $existingNote = json_decode($detail->note ?? '[]', true);
             if (!is_array($existingNote)) {
@@ -1332,36 +1452,59 @@ class BookingController extends Controller
                     'breakfast' => $breakfastRate,
                 ],
                 'extra_charge_mode' => $extraChargeMode,
+                // Store original booking price for reference
+                'original_booking_price' => $originalTotal,
+                'new_booking_price' => $newTotalPrice,
             ]);
 
             $detail->note = json_encode($merged, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
+            // Calculate price difference
+            $priceDifference = $newTotalPrice - $originalTotal;
+
+            // Only charge the difference, not the full new price
+            $detail->total_price = max(0, $priceDifference);
+
             $detail->save();
 
-            // Update booking status depending on price difference
-            if ($newTotalPrice > $originalTotal) {
+            // Update booking status based on price difference
+            if ($priceDifference > 0) {
+                // There's additional payment needed
                 $booking->status = BookingStatus::PEMBAYARAN;
             } else {
+                // New price is less than or equal to original, no payment needed
                 $booking->status = BookingStatus::BERHASIL;
             }
             $booking->save();
         });
 
-        // Redirect back to order details page so user sees updated status and payment if needed
-        return redirect()->route('reservasi.detail-pesanan', ['token' => $booking->token_code]);
+        // Determine redirect based on price difference
+        $priceDifference = $newTotalPrice - $originalTotal;
+
+        if ($priceDifference > 0) {
+            // Redirect to payment page to pay the difference
+            return redirect()->route('reservasi.detail-pesanan', ['token' => $booking->token_code])
+                ->with('info', 'Silakan lanjutkan pembayaran untuk selisih harga.');
+        } else {
+            // Redirect to confirmed page since no payment is needed
+            return redirect()->route('reservasi.detail-pesanan', ['token' => $booking->token_code])
+                ->with('success', 'Reschedule berhasil. Booking Anda telah diperbarui tanpa biaya tambahan.');
+        }
     }
 
     /**
      * Show the cancellation page.
-     * If code is provided via GET, lookup and show booking details.
+     * If code and email are provided via GET, lookup and show booking details.
+     * Email must match the booking's guest email.
      */
     public function showCancellationPage(Request $request): \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
     {
         $code = $request->input('code');
+        $email = $request->input('email');
         $booking = null;
         $error = null;
 
-        if ($code) {
+        if ($code && $email) {
             $booking = Booking::with([
                 'bookingDetails.unit.area',
                 'bookingOutbounds.outbound',
@@ -1370,16 +1513,22 @@ class BookingController extends Controller
 
             if (!$booking) {
                 $error = 'Kode booking tidak ditemukan. Pastikan kode yang Anda masukkan benar.';
+            } elseif (strtolower(trim($email)) !== strtolower(trim($booking->guest_email))) {
+                $error = 'Email tidak sesuai dengan email pada booking ini. Silakan periksa kembali email Anda.';
+                $booking = null;
             } elseif (!$booking->canBeCancelled()) {
                 $error = 'Booking dengan status "' . $booking->status->label() . '" tidak dapat dibatalkan.';
                 $booking = null;
             }
+        } elseif ($code || $email) {
+            $error = 'Silakan masukkan kode booking dan email untuk melanjutkan.';
         }
 
         return view('cancellation', [
             'booking' => $booking,
             'error' => $error,
             'code' => $code,
+            'email' => $email,
         ]);
     }
 

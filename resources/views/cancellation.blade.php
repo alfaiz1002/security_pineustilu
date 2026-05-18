@@ -9,7 +9,7 @@
             <div class="w-full max-w-3xl mx-auto text-center">
                 <x-page-heading title="CANCELLATION" wrapperClass="text-center" />
                 <p class="mt-4 text-gray-600">
-                    The booking code can be found in your order details page
+                    Insert your booking code and email address to find your reservation cancel it. The booking code can be found in your order details page.
                 </p>
 
                 {{-- Success/Error Messages --}}
@@ -32,19 +32,31 @@
                 @endif
 
                 {{-- Search Form --}}
-                <form class="mt-8 flex items-center justify-center" action="{{ route('cancellation') }}" method="GET">
-                    <label for="cancel-redeem" class="sr-only">Booking Code</label>
-                    <div class="flex w-full max-w-2xl">
+                <form class="mt-8 flex flex-col items-center justify-center gap-4" action="{{ route('cancellation') }}" method="GET">
+                    <div class="w-full max-w-2xl">
+                        <label for="cancel-redeem" class="block text-sm font-medium text-gray-700 mb-2">Booking Code</label>
                         <input
                             id="cancel-redeem"
                             type="text"
                             name="code"
                             value="{{ $code ?? request('code') }}"
                             placeholder="Enter your Booking Code"
-                            class="w-full px-6 md:px-7 py-3 md:py-4 bg-white/90 border border-[#146B4A] rounded-l-full rounded-r-none text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#146B4A] focus:border-[#146B4A] uppercase tracking-wider" />
+                            class="w-full px-6 md:px-7 py-3 md:py-4 bg-white/90 border border-[#146B4A] rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#146B4A] focus:border-[#146B4A] uppercase tracking-wider" />
+                    </div>
+                    <div class="w-full max-w-2xl">
+                        <label for="cancellation-email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input
+                            id="cancellation-email"
+                            type="email"
+                            name="email"
+                            value="{{ $email ?? request('email') }}"
+                            placeholder="Enter your Email Address"
+                            class="w-full px-6 md:px-7 py-3 md:py-4 bg-white/90 border border-[#146B4A] rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#146B4A] focus:border-[#146B4A]" />
+                    </div>
+                    <div class="w-full max-w-2xl">
                         <button
                             type="submit"
-                            class="px-6 md:px-8 py-3 md:py-4 bg-[#146B4A] text-white font-medium rounded-r-full rounded-l-none hover:bg-[#115a3e] focus:outline-none focus:ring-2 focus:ring-[#146B4A] -ml-px">
+                            class="w-full px-6 md:px-8 py-3 md:py-4 bg-[#146B4A] text-white font-medium rounded-xl hover:bg-[#115a3e] focus:outline-none focus:ring-2 focus:ring-[#146B4A]">
                             Search
                         </button>
                     </div>
@@ -58,7 +70,7 @@
                                 <h3 class="text-lg font-bold text-[#017249]">Booking Found</h3>
                                 <p class="text-sm text-gray-500">Code: {{ $booking->token_code }}</p>
                             </div>
-                            <span class="px-3 py-1 text-xs font-semibold rounded-full 
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full
                                 {{ $booking->status->value === 'berhasil' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
                                 {{ $booking->status->label() }}
                             </span>

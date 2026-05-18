@@ -1,6 +1,6 @@
 /**
  * Reschedule Page JavaScript
- * Handles form validation and submission
+ * Handles form validation and submission for both code and email
  */
 
 import { onReady } from '../utils/dom.js';
@@ -9,16 +9,18 @@ import { sanitize, isValidRedeemCode } from '../utils/helpers.js';
 class Reschedule {
     constructor() {
         this.form = null;
-        this.input = null;
+        this.codeInput = null;
+        this.emailInput = null;
         this.button = null;
         this.msg = null;
     }
 
     init() {
         this.form = document.querySelector('form[action*="reschedule"]');
-        this.input = document.getElementById('redeem-code');
+        this.codeInput = document.getElementById('redeem-code');
+        this.emailInput = document.getElementById('reschedule-email');
 
-        if (!this.form || !this.input) return;
+        if (!this.form || !this.codeInput || !this.emailInput) return;
 
         this.button = this.form.querySelector('button[type="submit"]');
         this.createMessageElement();
@@ -32,8 +34,12 @@ class Reschedule {
     }
 
     bindEvents() {
-        this.input.addEventListener('input', () => {
-            this.input.value = sanitize(this.input.value);
+        this.codeInput.addEventListener('input', () => {
+            this.codeInput.value = sanitize(this.codeInput.value);
+            this.clearError();
+        });
+
+        this.emailInput.addEventListener('input', () => {
             this.clearError();
         });
 
@@ -41,7 +47,8 @@ class Reschedule {
     }
 
     clearError() {
-        this.input.classList.remove('border-red-500', 'ring-red-500');
+        this.codeInput.classList.remove('border-red-500', 'ring-red-500');
+        this.emailInput.classList.remove('border-red-500', 'ring-red-500');
         this.msg.textContent = '';
         this.msg.classList.remove('text-red-600', 'text-green-600');
     }
@@ -49,7 +56,13 @@ class Reschedule {
     showError(message) {
         this.msg.textContent = message;
         this.msg.classList.add('text-red-600');
-        this.input.classList.add('border-red-500', 'ring-red-500');
+        this.codeInput.classList.add('border-red-500', 'ring-red-500');
+        this.emailInput.classList.add('border-red-500', 'ring-red-500');
+    }
+
+    isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
     }
 
     setLoading(loading) {
@@ -67,18 +80,35 @@ class Reschedule {
 
     handleSubmit(e) {
         e.preventDefault();
-        const code = sanitize(this.input.value);
+        const code = sanitize(this.codeInput.value);
+        const email = this.emailInput.value.trim();
+
+        if (!code) {
+            this.showError('Silakan masukkan kode booking Anda.');
+            return;
+        }
 
         if (!isValidRedeemCode(code)) {
-            this.showError('Invalid redeem code. Use 6–32 alphanumeric characters and hyphens (-).');
+            this.showError('Kode booking tidak valid. Gunakan 6–32 karakter alfanumerik dan tanda hubung (-).');
+            return;
+        }
+
+        if (!email) {
+            this.showError('Silakan masukkan email Anda.');
+            return;
+        }
+
+        if (!this.isValidEmail(email)) {
+            this.showError('Format email tidak valid. Silakan masukkan email yang benar.');
             return;
         }
 
         this.setLoading(true);
 
-        // Redirect with query parameter
+        // Redirect with query parameters
         const url = new URL(this.form.action, window.location.origin);
         url.searchParams.set('code', code);
+        url.searchParams.set('email', email);
         window.location.href = url.toString();
 
         // Safety re-enable if redirect is blocked
