@@ -84,6 +84,9 @@ Route::prefix('api')->middleware(['throttle:60,1'])->group(function () {
     Route::post('/reservasi/glamping/draft/{draftId}/select-unit', [BookingController::class, 'selectGlampingDraftUnit'])->name('api.reservasi.glamping.draft.select-unit');
     Route::get('/reservasi/glamping/draft/{draftId}/checkout-options', [BookingController::class, 'getGlampingDraftCheckoutOptions'])->name('api.reservasi.glamping.draft.checkout-options');
 
+    // Reschedule pricing estimation
+    Route::post('/reschedule/{token}/estimate', [BookingController::class, 'estimateReschedulePrice'])->name('api.reschedule.estimate');
+
     // Payment routes
     Route::get('/payment/snap-token/{bookingToken}', [PaymentController::class, 'getSnapToken'])->name('api.payment.snap-token');
     Route::get('/payment/status/{bookingToken}', [PaymentController::class, 'getPaymentStatus'])->name('api.payment.status');

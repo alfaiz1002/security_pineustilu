@@ -58,6 +58,24 @@
                 <span id="previewExtraChargeLabel">Extra Breakfast:</span>
                 <span id="previewBreakfastExtra" class="font-semibold">Rp 0</span>
             </div>
+
+            <!-- Reschedule pricing breakdown -->
+            @if(!empty($rescheduleMode))
+            <div id="rescheduleBreakdown" class="border-t border-gray-300 pt-3 mt-3 space-y-1.5 text-xs">
+                <div class="flex justify-between text-gray-600">
+                    <span>Original Booking:</span>
+                    <span id="previewOriginalPrice" class="font-semibold">Rp 0</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                    <span>New Booking Price:</span>
+                    <span id="previewNewPrice" class="font-semibold">Rp 0</span>
+                </div>
+                <div class="flex justify-between font-bold text-sm">
+                    <span>Price Difference:</span>
+                    <span id="previewPriceDifference" class="font-semibold text-gray-800">Rp 0</span>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
