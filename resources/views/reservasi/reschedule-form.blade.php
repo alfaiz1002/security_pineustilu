@@ -68,6 +68,19 @@ document.addEventListener('DOMContentLoaded', function(){
         if (!checkin || !checkout || !unitId || !token) {
             return;
         }
+        const guestCount = parseInt(document.getElementById('guestCount')?.value) || 1;
+        const extraChargeMode = document.getElementById('extraChargeMode')?.value || '';
+        
+        const extraItems = {};
+        document.querySelectorAll('.amenity-qty-input').forEach(input => {
+            const qty = parseInt(input.value) || 0;
+            if (qty > 0) {
+                const itemId = input.dataset.itemId;
+                if (itemId) {
+                    extraItems[itemId] = qty;
+                }
+            }
+        });
 
         try {
             const response = await fetch(`/api/reschedule/${token}/estimate`, {
@@ -80,6 +93,9 @@ document.addEventListener('DOMContentLoaded', function(){
                     checkin: checkin,
                     checkout: checkout,
                     unit_id: parseInt(unitId),
+                    guest_count: guestCount,
+                    extra_charge_mode: extraChargeMode,
+                    extra_items: extraItems
                 }),
             });
 
@@ -101,9 +117,6 @@ document.addEventListener('DOMContentLoaded', function(){
     // Update preview with breakdown
     function updateReschedulePreview(data) {
         const breakdown = data.breakdown;
-
-        // Update main price with the payable amount (difference)
-        document.getElementById('previewPrice').textContent = formatToRupiah(breakdown.payable_amount);
 
         // Update breakdown elements for reschedule
         const originalPriceEl = document.getElementById('previewOriginalPrice');
@@ -133,18 +146,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 differencePriceEl.className = 'font-semibold text-gray-800';
             }
         }
-
-        // Update main preview price color based on whether payment is needed
-        const previewPriceEl = document.getElementById('previewPrice');
-        if (previewPriceEl) {
-            if (breakdown.payable_amount > 0) {
-                // Payment needed
-                previewPriceEl.className = 'text-2xl font-extrabold text-red-600';
-            } else {
-                // No payment needed
-                previewPriceEl.className = 'text-2xl font-extrabold text-green-600';
-            }
-        }
     }
 
     // Listen to date/unit changes
@@ -155,6 +156,17 @@ document.addEventListener('DOMContentLoaded', function(){
     if (checkinInput) checkinInput.addEventListener('change', estimateReschedulePricing);
     if (checkoutInput) checkoutInput.addEventListener('change', estimateReschedulePricing);
     if (unitSelect) unitSelect.addEventListener('change', estimateReschedulePricing);
+    
+    // Listen to guest count and extra items changes
+    const guestCountInput = document.getElementById('guestCount');
+    if (guestCountInput) guestCountInput.addEventListener('change', estimateReschedulePricing);
+    
+    const extraChargeModeInput = document.getElementById('extraChargeMode');
+    if (extraChargeModeInput) extraChargeModeInput.addEventListener('change', estimateReschedulePricing);
+    
+    document.querySelectorAll('.amenity-qty-input').forEach(input => {
+        input.addEventListener('change', estimateReschedulePricing);
+    });
 
     // Initial estimate on load
     setTimeout(estimateReschedulePricing, 500);

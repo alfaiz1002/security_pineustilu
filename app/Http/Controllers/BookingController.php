@@ -31,7 +31,8 @@ class BookingController extends Controller
     public function __construct(
         private readonly PricingService $pricingService,
         private readonly AvailabilityService $availabilityService,
-    ) {}
+    ) {
+    }
 
     /**
      * Show availability table page.
@@ -436,7 +437,7 @@ class BookingController extends Controller
         $seasonType = $checkinDate ? $this->pricingService->resolveSeasonType($checkinDate) : 'weekday';
 
         $units = AreaUnit::query()->where('area_id', $area->id)->get(['id', 'default_people', 'max_people']);
-        $unitIds = $units->pluck('id')->map(fn ($v) => (int) $v)->values()->all();
+        $unitIds = $units->pluck('id')->map(fn($v) => (int) $v)->values()->all();
 
         $capacity = $this->buildCapacitySummary($units);
         $priceBySeason = $this->pricingService->getMinPricesBySeason($unitIds);
@@ -532,14 +533,14 @@ class BookingController extends Controller
             });
 
         $privateFacilities = $rows
-            ->filter(fn ($f) => $f['type'] === 'private')
-            ->map(fn ($f) => ['name' => $f['name'], 'icon' => $f['icon']])
+            ->filter(fn($f) => $f['type'] === 'private')
+            ->map(fn($f) => ['name' => $f['name'], 'icon' => $f['icon']])
             ->values()
             ->all();
 
         $publicFacilities = $rows
-            ->filter(fn ($f) => $f['type'] === 'public')
-            ->map(fn ($f) => ['name' => $f['name'], 'icon' => $f['icon']])
+            ->filter(fn($f) => $f['type'] === 'public')
+            ->map(fn($f) => ['name' => $f['name'], 'icon' => $f['icon']])
             ->values()
             ->all();
 
@@ -629,7 +630,7 @@ class BookingController extends Controller
             $managedAmenityIds = Item::query()
                 ->whereIn('name', ['Amenities', 'Amenities VIP', 'Extra Breakfast'])
                 ->pluck('id')
-                ->map(fn ($id) => (int) $id)
+                ->map(fn($id) => (int) $id)
                 ->all();
             foreach ($managedAmenityIds as $managedId) {
                 unset($amenityQuantities[$managedId]);
@@ -678,29 +679,7 @@ class BookingController extends Controller
 
         $token = $this->generateUniqueTokenCode();
 
-        DB::transaction(function () use (
-            $authUser,
-            $guestName,
-            $guestPhone,
-            $guestEmail,
-            $token,
-            $unit,
-            $checkin,
-            $checkout,
-            $people,
-            $extraCharge,
-            $basePrice,
-            $amenityBreakdown,
-            $pricing,
-            $seasonSummary,
-            $defaultPeople,
-            $extraPeople,
-            $fullRate,
-            $breakfastRate,
-            $selectedExtraRate,
-            $extraChargeGuestMode,
-            $extraChargeMode
-        ) {
+        DB::transaction(function () use ($authUser, $guestName, $guestPhone, $guestEmail, $token, $unit, $checkin, $checkout, $people, $extraCharge, $basePrice, $amenityBreakdown, $pricing, $seasonSummary, $defaultPeople, $extraPeople, $fullRate, $breakfastRate, $selectedExtraRate, $extraChargeGuestMode, $extraChargeMode) {
             $booking = Booking::create([
                 'user_id' => $authUser?->id,
                 'booking_type' => 'glamping',
@@ -968,27 +947,27 @@ class BookingController extends Controller
                 : '-';
 
             $rescheduleInfo = [
-                'payment_status'  => $ri['payment_status'] ?? 'no_payment_required',
-                'price_delta'     => (float) ($ri['price_delta'] ?? 0),
-                'payable_amount'  => (float) ($ri['payable_amount'] ?? 0),
+                'payment_status' => $ri['payment_status'] ?? 'no_payment_required',
+                'price_delta' => (float) ($ri['price_delta'] ?? 0),
+                'payable_amount' => (float) ($ri['payable_amount'] ?? 0),
                 'payable_display' => $this->formatIdr(abs((float) ($ri['price_delta'] ?? 0))),
                 'original' => [
-                    'checkin'      => $origCheckinFormatted,
-                    'checkout'     => $origCheckoutFormatted,
-                    'area_name'    => $ri['original']['area_name'] ?? '-',
-                    'unit_name'    => $ri['original']['unit_name'] ?? '-',
-                    'base_price'   => $this->formatIdr((float) ($ri['original']['base_price'] ?? 0)),
+                    'checkin' => $origCheckinFormatted,
+                    'checkout' => $origCheckoutFormatted,
+                    'area_name' => $ri['original']['area_name'] ?? '-',
+                    'unit_name' => $ri['original']['unit_name'] ?? '-',
+                    'base_price' => $this->formatIdr((float) ($ri['original']['base_price'] ?? 0)),
                     'extra_charge' => $this->formatIdr((float) ($ri['original']['extra_charge'] ?? 0)),
-                    'total_price'  => $this->formatIdr((float) ($ri['original']['total_price'] ?? 0)),
+                    'total_price' => $this->formatIdr((float) ($ri['original']['total_price'] ?? 0)),
                 ],
                 'new' => [
-                    'checkin'      => $newCheckinFormatted,
-                    'checkout'     => $newCheckoutFormatted,
-                    'area_name'    => $ri['new']['area_name'] ?? '-',
-                    'unit_name'    => $ri['new']['unit_name'] ?? '-',
-                    'base_price'   => $this->formatIdr((float) ($ri['new']['base_price'] ?? 0)),
+                    'checkin' => $newCheckinFormatted,
+                    'checkout' => $newCheckoutFormatted,
+                    'area_name' => $ri['new']['area_name'] ?? '-',
+                    'unit_name' => $ri['new']['unit_name'] ?? '-',
+                    'base_price' => $this->formatIdr((float) ($ri['new']['base_price'] ?? 0)),
                     'extra_charge' => $this->formatIdr((float) ($ri['new']['extra_charge'] ?? 0)),
-                    'total_price'  => $this->formatIdr((float) ($ri['new']['total_price'] ?? 0)),
+                    'total_price' => $this->formatIdr((float) ($ri['new']['total_price'] ?? 0)),
                 ],
             ];
         }
@@ -1224,7 +1203,7 @@ class BookingController extends Controller
 
         // Prepare reservation-like data (similar to showGlampingReservation)
         $checkinDate = $detail && $detail->check_in ? Carbon::parse($detail->check_in)->startOfDay() : Carbon::now()->startOfDay();
-        $checkin = $checkinDate->toDateString();
+        $checkin = $checkinDate->format('Y-m-d');
 
         $areaUnits = $this->availabilityService->buildAreaUnits();
         $availability = $this->availabilityService->computeAvailabilityForDate($areaUnits, $checkin);
@@ -1263,116 +1242,7 @@ class BookingController extends Controller
         ]);
     }
 
-    /**
-     * Estimate reschedule pricing without updating the booking.
-     * Returns the breakdown of old price, new price, and difference.
-     */
-    public function estimateReschedulePrice(Request $request, string $token): \Illuminate\Http\JsonResponse
-    {
-        $request->validate([
-            'checkin' => ['required', 'date', 'after_or_equal:today'],
-            'checkout' => ['required', 'date', 'after:checkin'],
-            'unit_id' => ['required', 'integer', 'exists:area_units,id'],
-        ]);
 
-        try {
-            $booking = Booking::with(['bookingDetails'])->where('token_code', strtoupper(trim($token)))->first();
-
-            if (!$booking) {
-                return response()->json(['success' => false, 'message' => 'Booking tidak ditemukan'], 404);
-            }
-
-            if ($booking->booking_type !== 'glamping') {
-                return response()->json(['success' => false, 'message' => 'Hanya glamping yang bisa di-reschedule'], 400);
-            }
-
-            $detail = $booking->bookingDetails->first();
-            if (!$detail) {
-                return response()->json(['success' => false, 'message' => 'Detail booking tidak ditemukan'], 404);
-            }
-
-            $originalTotal = (float) $detail->total_price;
-
-            // Get new unit and validate availability
-            $unit = AreaUnit::query()->with(['area:id,slug,extra_charge_breakfast,extra_charge_full'])->findOrFail((int) $request->input('unit_id'));
-
-            $checkin = Carbon::parse($request->input('checkin'))->startOfDay();
-            $checkout = Carbon::parse($request->input('checkout'))->startOfDay();
-
-            // Check availability
-            try {
-                $this->assertUnitAvailable($unit->id, $checkin, $checkout);
-            } catch (\Exception $e) {
-                return response()->json(['success' => false, 'message' => 'Unit tidak tersedia untuk tanggal tersebut'], 400);
-            }
-
-            // Calculate new price using same logic as processReschedule
-            $guestCount = (int) $detail->number_of_people;
-
-            $pricing = $this->pricingService->getUnitBasePriceForRange($unit->id, $checkin, $checkout);
-            $basePrice = (float) ($pricing['total'] ?? 0.0);
-
-            // Reconstruct amenities from original note
-            $note = $detail && $detail->note ? json_decode($detail->note, true) : [];
-            $amenitiesBreakdown = $note['amenities_breakdown'] ?? [];
-
-            $amenityIds = array_values(array_filter(array_map(fn($i) => (int) ($i['id'] ?? 0), $amenitiesBreakdown)));
-            if (!empty($amenityIds)) {
-                $amenities = Item::with('prices')->whereIn('id', $amenityIds)->get();
-            } else {
-                $amenities = collect();
-            }
-
-            $extraChargeAmenities = 0.0;
-            foreach ($amenitiesBreakdown as $itemRow) {
-                $itemId = (int) ($itemRow['id'] ?? 0);
-                $qty = max(0, (int) ($itemRow['qty'] ?? 0));
-                if ($qty <= 0) continue;
-                $itemModel = $amenities->firstWhere('id', $itemId);
-                $latest = $itemModel?->prices->sortByDesc('created_at')->first();
-                $unitPrice = $latest ? (float) $latest->price : (float) ($itemRow['unit_price'] ?? 0.0);
-                $extraChargeAmenities += $unitPrice * $qty;
-            }
-
-            // Extra guest charge
-            $extraChargeMode = (string) ($note['extra_charge_mode'] ?? 'breakfast');
-            $defaultPeople = (int) ($unit->default_people ?? 0);
-            $extraPeople = max(0, $guestCount - $defaultPeople);
-            $fullRate = $unit->area && $unit->area->extra_charge_full !== null ? (float) $unit->area->extra_charge_full : 0.0;
-            $breakfastRate = $unit->area && $unit->area->extra_charge_breakfast !== null ? (float) $unit->area->extra_charge_breakfast : 0.0;
-            $selectedExtraRate = 0.0;
-            if ($extraPeople > 0) {
-                $selectedExtraRate = $extraChargeMode === 'full' ? $fullRate : $breakfastRate;
-            }
-            $extraChargeGuestMode = $extraPeople * $selectedExtraRate;
-
-            $totalExtraCharge = $extraChargeAmenities + $extraChargeGuestMode;
-            $newTotalPrice = $basePrice + $totalExtraCharge;
-
-            // Calculate difference
-            $priceDifference = $newTotalPrice - $originalTotal;
-
-            return response()->json([
-                'success' => true,
-                'breakdown' => [
-                    'original_price' => $originalTotal,
-                    'new_price' => $newTotalPrice,
-                    'price_difference' => $priceDifference,
-                    'base_price' => $basePrice,
-                    'extra_amenities' => $extraChargeAmenities,
-                    'extra_guest' => $extraChargeGuestMode,
-                    'total' => max(0, $priceDifference), // Only show positive difference or 0
-                    'payable_amount' => max(0, $priceDifference),
-                    // For backward compatibility with frontend expected format
-                    'reschedule_fee' => $priceDifference,
-                    'seasonal_charge' => 0,
-                    'extra_items' => $extraChargeAmenities,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
-        }
-    }
 
     /**
      * Process reschedule submission from guest.
@@ -1458,11 +1328,12 @@ class BookingController extends Controller
             } else {
                 $amenities = collect();
             }
-            
+
             foreach ($amenitiesBreakdownOriginal as $itemRow) {
                 $itemId = (int) ($itemRow['id'] ?? 0);
                 $qty = max(0, (int) ($itemRow['qty'] ?? 0));
-                if ($qty <= 0) continue;
+                if ($qty <= 0)
+                    continue;
                 $itemModel = $amenities->firstWhere('id', $itemId);
                 $latest = $itemModel?->prices->sortByDesc('created_at')->first();
                 $unitPrice = $latest ? (float) $latest->price : (float) ($itemRow['unit_price'] ?? 0.0);
@@ -1498,31 +1369,23 @@ class BookingController extends Controller
 
         // Calculate price delta for payment routing
         $priceDelta = $newTotalPrice - $originalTotal;
-        $paymentStatus = match(true) {
+        $paymentStatus = match (true) {
             $priceDelta > 0 => 'payment_required',
             $priceDelta < 0 => 'refund_due',
             default => 'no_payment_required',
         };
 
         // Capture original data before overwriting for reschedule info display
-        $originalCheckin  = $detail->check_in ? $detail->check_in->toDateString() : null;
+        $originalCheckin = $detail->check_in ? $detail->check_in->toDateString() : null;
         $originalCheckout = $detail->check_out ? $detail->check_out->toDateString() : null;
-        $originalUnitId   = (int) $detail->unit_id;
+        $originalUnitId = (int) $detail->unit_id;
         $originalBasePrice = $originalTotal - (float) $detail->total_extra_charge;
         $originalExtraCharge = (float) $detail->total_extra_charge;
         $originalUnitName = $detail->unit?->name ?? '-';
         $originalAreaName = $detail->unit?->area?->name ?? '-';
 
         // Update DB inside transaction
-        DB::transaction(function () use (
-            $detail, $unit, $checkin, $checkout, $guestCount, $totalExtraCharge,
-            $newTotalPrice, $amenityBreakdown, $extraPeople, $selectedExtraRate,
-            $extraChargeMode, $fullRate, $breakfastRate, $booking, $originalTotal,
-            $pricing, $defaultPeople, $extraChargeGuestMode, $basePrice,
-            $priceDelta, $paymentStatus,
-            $originalCheckin, $originalCheckout, $originalUnitId, $originalUnitName,
-            $originalAreaName, $originalBasePrice, $originalExtraCharge
-        ) {
+        DB::transaction(function () use ($detail, $unit, $checkin, $checkout, $guestCount, $totalExtraCharge, $newTotalPrice, $amenityBreakdown, $extraPeople, $selectedExtraRate, $extraChargeMode, $fullRate, $breakfastRate, $booking, $originalTotal, $pricing, $defaultPeople, $extraChargeGuestMode, $basePrice, $priceDelta, $paymentStatus, $originalCheckin, $originalCheckout, $originalUnitId, $originalUnitName, $originalAreaName, $originalBasePrice, $originalExtraCharge) {
             $detail->unit_id = $unit->id;
             $detail->check_in = $checkin->toDateString();
             $detail->check_out = $checkout->toDateString();
@@ -1582,7 +1445,7 @@ class BookingController extends Controller
             ]);
 
             $detail->note = json_encode($merged, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            
+
             // Only charge the difference, not the full new price
             $detail->total_price = max(0, $priceDelta);
 
@@ -1861,11 +1724,13 @@ class BookingController extends Controller
                 ->findOrFail($newUnitId);
 
             // Validate availability
-            if (!$this->availabilityService->isUnitAvailable(
-                $newUnit->id,
-                $newCheckin->toDateString(),
-                $newCheckout->toDateString()
-            )) {
+            if (
+                !$this->availabilityService->isUnitAvailable(
+                    $newUnit->id,
+                    $newCheckin->toDateString(),
+                    $newCheckout->toDateString()
+                )
+            ) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unit tidak tersedia untuk tanggal yang dipilih.',
@@ -1903,7 +1768,8 @@ class BookingController extends Controller
             foreach ($amenitiesBreakdown as $itemRow) {
                 $itemId = (int) ($itemRow['id'] ?? 0);
                 $qty = max(0, (int) ($itemRow['qty'] ?? 0));
-                if ($qty <= 0) continue;
+                if ($qty <= 0)
+                    continue;
 
                 $itemModel = $amenities->firstWhere('id', $itemId);
                 $latest = $itemModel?->prices->sortByDesc('created_at')->first();
@@ -1957,19 +1823,37 @@ class BookingController extends Controller
             $finalAmenityBreakdown = $newAmenityBreakdown;
             $finalExtraChargeAmenities = $extraChargeAmenities;
 
-            if (!empty($requestExtraItems)) {
+            if ($request->has('extra_items')) {
                 // Recalculate with new quantities from request
                 $finalExtraChargeAmenities = 0.0;
                 $updatedAmenities = [];
+                
+                $originalItemIds = array_column($finalAmenityBreakdown, 'id');
+                $requestItemIds = array_keys($requestExtraItems);
+                $allItemIds = array_unique(array_merge($originalItemIds, $requestItemIds));
+                
+                $items = !empty($allItemIds) ? Item::with('prices')->whereIn('id', $allItemIds)->get() : collect();
 
-                foreach ($finalAmenityBreakdown as $item) {
-                    $itemId = $item['id'];
-                    $newQty = isset($requestExtraItems[$itemId]) ? max(0, (int) $requestExtraItems[$itemId]) : $item['qty'];
-                    $unitPrice = $item['unit_price'];
-                    $lineTotal = $unitPrice * $newQty;
-                    $finalExtraChargeAmenities += $lineTotal;
+                foreach ($allItemIds as $itemId) {
+                    $originalItem = collect($finalAmenityBreakdown)->firstWhere('id', $itemId);
+                    $newQty = isset($requestExtraItems[$itemId]) ? max(0, (int) $requestExtraItems[$itemId]) : ($originalItem['qty'] ?? 0);
+                    
+                    if ($newQty > 0) {
+                        $itemModel = $items->firstWhere('id', $itemId);
+                        $latest = $itemModel?->prices->sortByDesc('created_at')->first();
+                        $unitPrice = $latest ? (float) $latest->price : (float) ($originalItem['unit_price'] ?? 0.0);
+                        
+                        $lineTotal = $unitPrice * $newQty;
+                        $finalExtraChargeAmenities += $lineTotal;
 
-                    $updatedAmenities[] = array_merge($item, ['qty' => $newQty, 'line_total' => $lineTotal]);
+                        $updatedAmenities[] = [
+                            'id' => $itemId,
+                            'name' => $originalItem['name'] ?? ($itemModel?->name ?? 'Item'),
+                            'qty' => $newQty,
+                            'unit_price' => $unitPrice,
+                            'line_total' => $lineTotal,
+                        ];
+                    }
                 }
                 $finalAmenityBreakdown = $updatedAmenities;
             }
@@ -1990,7 +1874,7 @@ class BookingController extends Controller
             $extraCharge_Delta = $totalNewExtraCharge - $originalExtraCharge;
 
             // Determine payment status
-            $paymentStatus = match(true) {
+            $paymentStatus = match (true) {
                 $priceDelta > 0 => 'payment_required',
                 $priceDelta < 0 => 'refund_due',
                 default => 'no_payment_required',
@@ -2000,8 +1884,8 @@ class BookingController extends Controller
                 'success' => true,
                 'breakdown' => [
                     'original_price' => $originalPrice,
-                    'new_total_price' => $newTotalPrice,
-                    'price_delta' => $priceDelta,
+                    'new_price' => $newTotalPrice,
+                    'price_difference' => $priceDelta,
                     'payable_amount' => abs($priceDelta),
                     'payment_status' => $paymentStatus,
                     'is_price_increase' => $priceDelta > 0,
