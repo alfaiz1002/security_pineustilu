@@ -7,12 +7,15 @@
     <div class="space-y-4 sm:space-y-6">
         {{-- Profile Section --}}
         <div class="border-b border-gray-200 pb-3 sm:pb-4">
-            <h3 class="text-sm sm:text-base md:text-lg font-semibold text-gray-700 mb-3 sm:mb-4 font-poppins">Profile</h3>
+            <h3 class="text-sm sm:text-base md:text-lg font-semibold text-gray-700 mb-3 sm:mb-4 font-poppins">Profile
+            </h3>
 
-            <div class="flex items-center justify-between py-2 sm:py-3 hover:bg-gray-50 px-2 sm:px-4 rounded-xl sm:rounded-2xl transition-colors">
+            <div
+                class="flex items-center justify-between py-2 sm:py-3 hover:bg-gray-50 px-2 sm:px-4 rounded-xl sm:rounded-2xl transition-colors">
                 <div class="flex-1">
                     <p class="text-xs sm:text-sm text-gray-500 font-poppins">Name</p>
-                    <p class="text-sm sm:text-base font-medium text-gray-800 mt-0.5 sm:mt-1 font-poppins" data-user-name>
+                    <p class="text-sm sm:text-base font-medium text-gray-800 mt-0.5 sm:mt-1 font-poppins"
+                        data-user-name>
                         {{ auth()->user()->name }}
                     </p>
                 </div>
@@ -25,13 +28,16 @@
 
         {{-- Contact Section --}}
         <div class="border-b border-gray-200 pb-3 sm:pb-4">
-            <h3 class="text-sm sm:text-base md:text-lg font-semibold text-gray-700 mb-3 sm:mb-4 font-poppins">Contact</h3>
+            <h3 class="text-sm sm:text-base md:text-lg font-semibold text-gray-700 mb-3 sm:mb-4 font-poppins">Contact
+            </h3>
 
             {{-- Email --}}
-            <div class="flex items-center justify-between py-2 sm:py-3 hover:bg-gray-50 px-2 sm:px-4 rounded-xl sm:rounded-2xl transition-colors">
+            <div
+                class="flex items-center justify-between py-2 sm:py-3 hover:bg-gray-50 px-2 sm:px-4 rounded-xl sm:rounded-2xl transition-colors">
                 <div class="flex-1 min-w-0">
                     <p class="text-xs sm:text-sm text-gray-500 font-poppins">Email</p>
-                    <p class="text-sm sm:text-base font-medium text-gray-800 mt-0.5 sm:mt-1 font-poppins truncate" data-user-email>
+                    <p class="text-sm sm:text-base font-medium text-gray-800 mt-0.5 sm:mt-1 font-poppins truncate"
+                        data-user-email>
                         {{ auth()->user()->email }}
                     </p>
                 </div>
@@ -42,14 +48,14 @@
             </div>
 
             {{-- Phone Number --}}
-            <div class="flex items-center justify-between py-2 sm:py-3 hover:bg-gray-50 px-2 sm:px-4 rounded-xl sm:rounded-2xl transition-colors">
+            <div
+                class="flex items-center justify-between py-2 sm:py-3 hover:bg-gray-50 px-2 sm:px-4 rounded-xl sm:rounded-2xl transition-colors">
                 <div class="flex-1">
                     <p class="text-xs sm:text-sm text-gray-500 font-poppins">Phone Number</p>
                     <p class="text-sm sm:text-base font-medium text-gray-800 mt-0.5 sm:mt-1 font-poppins">
                         @if (auth()->user()->phone)
                             <span class="inline-flex items-center gap-1" data-user-phone>
-                                <span class="text-gray-600"
-                                    data-user-country-code>{{ auth()->user()->country_code }}</span>
+                                <span class="text-gray-600" data-user-country-code>{{ auth()->user()->country_code }}</span>
                                 <span data-user-phone-number>{{ auth()->user()->phone }}</span>
                             </span>
                         @else
@@ -64,7 +70,8 @@
             </div>
 
             {{-- Password --}}
-            <div class="flex items-center justify-between py-2 sm:py-3 hover:bg-gray-50 px-2 sm:px-4 rounded-xl sm:rounded-2xl transition-colors">
+            <div
+                class="flex items-center justify-between py-2 sm:py-3 hover:bg-gray-50 px-2 sm:px-4 rounded-xl sm:rounded-2xl transition-colors">
                 <div class="flex-1">
                     <p class="text-xs sm:text-sm text-gray-500 font-poppins">Password</p>
                     <p class="text-sm sm:text-base font-medium text-gray-800 mt-0.5 sm:mt-1 font-poppins">

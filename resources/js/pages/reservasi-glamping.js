@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     highRangesCache = safeJsonParse(glampingMapEl?.dataset?.highSeasonRanges, []);
 
     // Accordion toggle function for amenities
-    globalThis.toggleAccordion = function(id) {
+    globalThis.toggleAccordion = function (id) {
         const accordion = document.getElementById('accordion-' + id);
         const icon = document.getElementById('icon-' + id);
 
@@ -82,11 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 // detect VIP token
                 let vip = false;
-                if (parts.length && String(parts[parts.length-1]).toLowerCase() === 'vip') { vip = true; parts.pop(); }
+                if (parts.length && String(parts[parts.length - 1]).toLowerCase() === 'vip') { vip = true; parts.pop(); }
                 // last remaining token is usually the number or 'CABIN'
-                const last = parts.length ? parts[parts.length-1] : '';
+                const last = parts.length ? parts[parts.length - 1] : '';
                 // join name parts
-                const nameParts = parts.slice(0,-1).concat([last]);
+                const nameParts = parts.slice(0, -1).concat([last]);
                 let name = nameParts.map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }).join(' ');
                 if (vip) {
                     // if last part is numeric, append (VIP)
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.src = icon;
                 img.alt = name;
                 img.className = 'w-6 h-6 flex-shrink-0 object-contain';
-                img.onerror = function() {
+                img.onerror = function () {
                     // Fallback to dot if icon fails to load
                     this.replaceWith(createFallbackDot());
                 };
@@ -495,10 +495,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return statusByUnit;
         };
 
-        const applyMapAvailabilityForDate = async (ymd) => {
-            if (!ymd) return;
+        const applyMapAvailabilityForDate = async (checkinYmd, checkoutYmd) => {
+            if (!checkinYmd) return;
             try {
-                const draftRes = await postAsForm('/api/reservasi/glamping/draft/start', { checkin: ymd });
+                const payload = { checkin: checkinYmd };
+                if (checkoutYmd) payload.checkout = checkoutYmd;
+                
+                const origTokenEl = document.getElementById('originalToken');
+                if (origTokenEl && origTokenEl.value) {
+                    payload.original_token = origTokenEl.value;
+                }
+                
+                const draftRes = await postAsForm('/api/reservasi/glamping/draft/start', payload);
                 const draftData = draftRes?.data || {};
                 reservationDraftId = String(draftData.draft_id || reservationDraftId || '');
 
@@ -510,10 +518,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // fallback to legacy month endpoint
             }
 
-            const dateObj = parseYmd(ymd);
+            const dateObj = parseYmd(checkinYmd);
             if (!dateObj) return;
             const monthData = await fetchMonthAvailability(dateObj.getFullYear(), dateObj.getMonth());
-            const statusByUnit = buildUnitStatusForDate(monthData, ymd);
+            const statusByUnit = buildUnitStatusForDate(monthData, checkinYmd);
             if (typeof globalThis.glampingMapSetAvailability === 'function') globalThis.glampingMapSetAvailability(statusByUnit);
         };
 
@@ -554,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const disableCheckoutDate = (date) => {
-            if (!selectedUnitId) return true;
+            if (!selectedUnitId) return false;
             return isBookedDate(date);
         };
 
@@ -577,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (checkoutFp) {
-                checkoutFp.set('clickOpens', hasUnit);
+                checkoutFp.set('clickOpens', true);
                 checkoutFp.set('disable', [disableCheckoutDate]);
                 checkoutFp.redraw();
             }
@@ -641,13 +649,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const selectedUnitInput = document.getElementById('selected_unit');
             if (selectedUnitInput) {
                 selectedUnitInput.value = '';
-                try { selectedUnitInput.dispatchEvent(new Event('change', { bubbles: true })); } catch (_error) {}
+                try { selectedUnitInput.dispatchEvent(new Event('change', { bubbles: true })); } catch (_error) { }
             }
 
             const selectedUnitText = document.getElementById('selectedUnit');
             if (selectedUnitText) {
                 selectedUnitText.value = '-';
-                try { selectedUnitText.dispatchEvent(new Event('input', { bubbles: true })); } catch (_error) {}
+                try { selectedUnitText.dispatchEvent(new Event('input', { bubbles: true })); } catch (_error) { }
             }
 
             if (typeof globalThis.glampingMapClearSelection === 'function') {
@@ -750,11 +758,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         checkinEl.dataset.autoDate = '0';
                     }
 
-                    applyMapAvailabilityForDate(ymd);
+                    applyMapAvailabilityForDate(ymd, checkoutHiddenEl?.value);
                 }
             });
 
-            if (checkinFp?.altInput) checkinFp.altInput.setAttribute('readonly', 'readonly');
+            if (checkinFp?.altInput) {
+                checkinFp.altInput.setAttribute('readonly', 'readonly');
+                checkinFp.altInput.id = 'checkin_display';
+                checkinFp.altInput.name = 'checkin_display';
+            }
             checkinEl.setAttribute('readonly', 'readonly');
 
             if (checkoutDisplayEl) {
@@ -778,6 +790,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         setCheckoutDate(parseYmd(checkinEl.value) || new Date(), selectedDates[0], checkoutFp);
                         checkoutDisplayEl.dataset.autoDate = '0';
                         if (typeof globalThis.updatePreview === 'function') globalThis.updatePreview();
+                        applyMapAvailabilityForDate(checkinEl.value, formatYmd(selectedDates[0]));
                     }
                 });
                 checkoutDisplayEl.setAttribute('readonly', 'readonly');
@@ -788,7 +801,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const selected = checkinFp?.selectedDates?.[0] ? checkinFp.selectedDates[0] : new Date();
             setCheckoutDate(selected, parseYmd(checkoutHiddenEl?.value || '') || defaultCheckoutDate, checkoutFp);
 
-            applyMapAvailabilityForDate(checkinEl.value || formatYmd(selected));
+            applyMapAvailabilityForDate(checkinEl.value || formatYmd(selected), checkoutHiddenEl?.value);
 
             applyPickerLockState();
             bindSelectedUnitWatcher();
@@ -806,7 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!d) return;
                 setCheckoutDate(d, addDays(d, 1), null);
                 if (typeof globalThis.updatePreview === 'function') globalThis.updatePreview();
-                applyMapAvailabilityForDate(checkinEl.value);
+                applyMapAvailabilityForDate(checkinEl.value, checkoutHiddenEl?.value);
             });
             if (checkoutHiddenEl) checkoutHiddenEl.readOnly = true;
             if (checkoutDisplayEl) checkoutDisplayEl.readOnly = true;
@@ -882,20 +895,20 @@ document.addEventListener('DOMContentLoaded', () => {
         guestDecrease.addEventListener('click', () => {
             if (guestDecrease.disabled) return;
             let v = Number.parseInt(guestCount.value || '1', 10);
-            if (isNaN(v)) v = GUEST_MIN;
+            if (Number.isNaN(v)) v = 1;
             const min = Number.parseInt(guestCount.dataset.min || GUEST_MIN, 10) || GUEST_MIN;
             v = Math.max(min, v - 1);
             guestCount.value = v;
-            if (typeof debouncedPreview === 'function') debouncedPreview();
+            guestCount.dispatchEvent(new Event('change', { bubbles: true }));
         });
         guestIncrease.addEventListener('click', () => {
             if (guestIncrease.disabled) return;
             let v = Number.parseInt(guestCount.value || '1', 10);
-            if (isNaN(v)) v = GUEST_MIN;
+            if (Number.isNaN(v)) v = 1;
             const max = Number.parseInt(guestCount.dataset.max || GUEST_MAX, 10) || GUEST_MAX;
             v = Math.min(max, v + 1);
             guestCount.value = v;
-            if (typeof debouncedPreview === 'function') debouncedPreview();
+            guestCount.dispatchEvent(new Event('change', { bubbles: true }));
         });
         guestCount.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowUp') { e.preventDefault(); guestIncrease.click(); }
@@ -906,7 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('reservasiForm') || document.getElementById('rescheduleForm');
 
     // ========== AMENITIES MODAL FUNCTIONS ==========
-    globalThis.openAmenitiesModal = function() {
+    globalThis.openAmenitiesModal = function () {
         const modal = document.getElementById('amenitiesModal');
         if (modal) {
             modal.classList.remove('hidden');
@@ -915,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    globalThis.closeAmenitiesModal = function() {
+    globalThis.closeAmenitiesModal = function () {
         const modal = document.getElementById('amenitiesModal');
         if (modal) {
             modal.classList.add('hidden');
@@ -1019,15 +1032,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardEl = document.getElementById('extraGuestModeCard');
         if (cardEl) cardEl.classList.toggle('hidden', !isEligibleArea);
 
+        const selectedUnitId = String(document.getElementById('selected_unit')?.value || '').trim();
+        const hasSelectedUnit = selectedUnitId !== '';
+
+        // Ensure guest controls are always enabled when a unit is selected, 
+        // even for Cabin VIP/VVIP which are not eligible for extra guest modes.
+        setGuestControlsEnabled(hasSelectedUnit);
+
         if (!isEligibleArea) {
             modeInput.value = '';
             setExtraModeButtonState('', false);
             return;
         }
 
-        const selectedUnitId = String(document.getElementById('selected_unit')?.value || '').trim();
-        const hasSelectedUnit = selectedUnitId !== '';
-        setGuestControlsEnabled(hasSelectedUnit);
         const guestCountNum = Number.parseInt(document.getElementById('guestCount')?.value || '1', 10) || 1;
         const unitExtra = selectedUnitId ? unitExtraChargesCache?.[selectedUnitId] : null;
         let defaultPeople = Number.parseInt(String(unitExtra?.default_people ?? 0), 10);
@@ -1061,7 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Quantity button handlers for amenities
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (e.target.classList.contains('amenity-qty-increase')) {
             e.preventDefault();
             const itemId = e.target.dataset.itemId;
@@ -1072,6 +1089,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Number.isNaN(qty)) qty = 0;
                 qty += 1;
                 input.value = qty;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
                 display.textContent = qty;
                 updateAmenitiesCount();
             }
@@ -1085,6 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Number.isNaN(qty)) qty = 0;
                 qty = Math.max(0, qty - 1);
                 input.value = qty;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
                 display.textContent = qty;
                 updateAmenitiesCount();
             }
@@ -1099,6 +1118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         extraModeFullBtn.addEventListener('click', () => {
             if (extraModeFullBtn.disabled) return;
             extraChargeModeInput.value = 'full';
+            extraChargeModeInput.dispatchEvent(new Event('change', { bubbles: true }));
             syncExtraGuestAmenityMode();
             if (typeof globalThis.updatePreview === 'function') globalThis.updatePreview();
         });
@@ -1108,6 +1128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         extraModeBreakfastBtn.addEventListener('click', () => {
             if (extraModeBreakfastBtn.disabled) return;
             extraChargeModeInput.value = 'breakfast';
+            extraChargeModeInput.dispatchEvent(new Event('change', { bubbles: true }));
             syncExtraGuestAmenityMode();
             if (typeof globalThis.updatePreview === 'function') globalThis.updatePreview();
         });
@@ -1266,7 +1287,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return { basePrice, amenitiesPrice, breakfastExtra, extraChargeLabel, totalPrice };
     }
 
-    globalThis.updatePreview = function() {
+    globalThis.updatePreview = function () {
 
         syncExtraGuestAmenityMode();
 
@@ -1350,7 +1371,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 breakfastRowEl.classList.remove('flex');
             }
         }
-        if (totalPriceEl) totalPriceEl.textContent = formatIdr(totalPrice);
+        const isReschedule = !!document.getElementById('originalToken');
+        if (isReschedule) {
+            const originalTotal = Number.parseFloat(document.getElementById('originalTotalValue')?.value || '0') || 0;
+            const rescheduleFee = Number.parseFloat(document.getElementById('rescheduleFee')?.value || '0') || 0;
+            
+            // Total price represents base + amenities + breakfast. Add reschedule fee for new total.
+            const newTotal = totalPrice + rescheduleFee;
+            const priceDelta = newTotal - originalTotal;
+
+            const originalPriceEl = document.getElementById('previewOriginalPrice');
+            const newPriceEl = document.getElementById('previewNewPrice');
+            const differencePriceEl = document.getElementById('previewPriceDifference');
+
+            if (originalPriceEl) originalPriceEl.textContent = formatIdr(originalTotal);
+            if (newPriceEl) newPriceEl.textContent = formatIdr(newTotal);
+
+            if (differencePriceEl) {
+                differencePriceEl.textContent = formatIdr(priceDelta);
+                if (priceDelta > 0) {
+                    differencePriceEl.className = 'font-semibold text-red-600';
+                } else if (priceDelta < 0) {
+                    differencePriceEl.className = 'font-semibold text-green-600';
+                } else {
+                    differencePriceEl.className = 'font-semibold text-gray-800';
+                }
+            }
+            if (totalPriceEl) totalPriceEl.textContent = formatIdr(Math.abs(priceDelta));
+        } else if (totalPriceEl) {
+            totalPriceEl.textContent = formatIdr(totalPrice);
+        }
     };
 
     // Listen to form changes for preview update (debounced to avoid heavy work per keystroke)
@@ -1372,6 +1422,16 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('change', () => setBookingFlowMessage(''));
         el.addEventListener('input', () => setBookingFlowMessage(''));
     });
+
+    // Automatically remove leading '0' from phone input as the user types
+    const phoneInputRealtime = document.getElementById('phone');
+    if (phoneInputRealtime) {
+        phoneInputRealtime.addEventListener('input', function() {
+            if (this.value.startsWith('0')) {
+                this.value = this.value.replace(/^0+/, '');
+            }
+        });
+    }
 
     // Initial preview update
     if (typeof globalThis.updatePreview === 'function') globalThis.updatePreview();

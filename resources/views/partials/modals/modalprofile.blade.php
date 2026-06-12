@@ -7,8 +7,8 @@
             @method('PUT')
             <input type="hidden" name="field" value="name">
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Name</label>
-                <input type="text" name="name" id="nameInput" value="{{ auth()->user()->name }}" required
+                <label for="nameInput" class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Name</label>
+                <input type="text" name="name" id="nameInput" value="{{ auth()->user()->name }}" required autocomplete="name"
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#017249] focus:border-transparent font-poppins">
             </div>
             <div class="flex gap-3">
@@ -34,8 +34,8 @@
             @method('PUT')
             <input type="hidden" name="field" value="email">
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Email</label>
-                <input type="email" name="email" id="emailInput" value="{{ auth()->user()->email }}" required
+                <label for="emailInput" class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Email</label>
+                <input type="email" name="email" id="emailInput" value="{{ auth()->user()->email }}" required autocomplete="email"
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#017249] focus:border-transparent font-poppins">
             </div>
             <div class="flex gap-3">
@@ -62,10 +62,10 @@
             <input type="hidden" name="field" value="phone">
 
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Phone Number</label>
+                <label for="phoneInput" class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Phone Number</label>
                 <div class="flex gap-3">
                     {{-- Country Code Dropdown --}}
-                    <select name="country_code" id="countryCodeSelect"
+                    <select name="country_code" id="countryCodeSelect" autocomplete="tel-country-code"
                         class="w-32 pl-3 pr-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#017249] focus:border-transparent font-poppins cursor-pointer bg-white appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e')] bg-[length:1.25rem] bg-[center_right_0.5rem] bg-no-repeat">
                         <option value="+62" {{ auth()->user()->country_code == '+62' ? 'selected' : '' }}>🇮🇩 +62</option>
                         <option value="+1" {{ auth()->user()->country_code == '+1' ? 'selected' : '' }}>🇺🇸 +1</option>
@@ -84,7 +84,7 @@
 
                     {{-- Phone Input --}}
                     <input type="tel" name="phone" id="phoneInput" value="{{ auth()->user()->phone }}"
-                        placeholder="8123456789"
+                        placeholder="8123456789" autocomplete="tel-national"
                         class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#017249] focus:border-transparent font-poppins">
                 </div>
             </div>
@@ -114,18 +114,18 @@
             {{-- Hidden username field for accessibility and password managers --}}
             <input type="email" autocomplete="username" value="{{ auth()->user()->email }}" class="hidden" style="display: none;">
             <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Current Password</label>
-                <input type="password" name="current_password" required autocomplete="current-password"
+                <label for="currentPasswordInput" class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Current Password</label>
+                <input type="password" name="current_password" id="currentPasswordInput" required autocomplete="current-password"
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#017249] focus:border-transparent font-poppins">
             </div>
             <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">New Password</label>
-                <input type="password" name="password" required autocomplete="new-password"
+                <label for="newPasswordInput" class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">New Password</label>
+                <input type="password" name="password" id="newPasswordInput" required autocomplete="new-password"
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#017249] focus:border-transparent font-poppins">
             </div>
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Confirm New Password</label>
-                <input type="password" name="password_confirmation" required autocomplete="new-password"
+                <label for="confirmPasswordInput" class="block text-sm font-semibold text-gray-700 mb-2 font-poppins">Confirm New Password</label>
+                <input type="password" name="password_confirmation" id="confirmPasswordInput" required autocomplete="new-password"
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#017249] focus:border-transparent font-poppins">
             </div>
             <div class="flex gap-3">

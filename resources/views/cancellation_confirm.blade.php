@@ -102,7 +102,7 @@
                         <div class="mt-6 flex items-center justify-between">
                             <a href="{{ route('cancellation', ['code' => $code]) }}" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl">Back</a>
                             <button id="process-refund-btn" type="submit" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50" disabled>
-                                Proses Refund
+                                {{ isset($is_paid) && $is_paid ? 'Proses Refund' : 'Batalkan Pesanan' }}
                             </button>
                         </div>
                     </form>

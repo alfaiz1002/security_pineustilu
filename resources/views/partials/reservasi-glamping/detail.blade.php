@@ -9,15 +9,15 @@
         $phoneDisplayPrefill = (string) ($prefill['phone'] ?? '');
         $phoneDigits = preg_replace('/\D+/', '', $phoneDisplayPrefill);
         $codeDigits = preg_replace('/\D+/', '', (string) $countryCodeDefault);
-        if ($phoneDisplayPrefill !== '' && $codeDigits === '62') {
+        if ($phoneDisplayPrefill !== '') {
             if (str_starts_with($phoneDisplayPrefill, '+') && str_starts_with($phoneDigits, $codeDigits)) {
                 $local = substr($phoneDigits, strlen($codeDigits));
-                if ($local !== '') $phoneDisplayPrefill = '0' . ltrim($local, '0');
+                $phoneDisplayPrefill = ltrim($local, '0');
             } elseif (str_starts_with($phoneDigits, $codeDigits)) {
                 $local = substr($phoneDigits, strlen($codeDigits));
-                if ($local !== '') $phoneDisplayPrefill = '0' . ltrim($local, '0');
-            } elseif (!str_starts_with($phoneDigits, '0') && str_starts_with($phoneDigits, '8')) {
-                $phoneDisplayPrefill = '0' . $phoneDigits;
+                $phoneDisplayPrefill = ltrim($local, '0');
+            } else {
+                $phoneDisplayPrefill = ltrim($phoneDigits, '0');
             }
         }
 
@@ -31,7 +31,7 @@
     <div class="space-y-5 mb-6">
         <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
-                <label class="block text-xs text-gray-600 font-medium" for="checkin">Check-in Date</label>
+                <label class="block text-xs text-gray-600 font-medium" for="checkin_display">Check-in Date</label>
                 <div class="relative">
                     <input id="checkin" name="checkin" type="text" readonly
                         class="w-full rounded-xl border-2 border-gray-200 px-3 py-2.5 pr-10 bg-white focus:border-[#017249] focus:ring-2 focus:ring-[#017249]/20 transition-all duration-200 text-gray-700 font-medium cursor-pointer text-sm"
@@ -189,7 +189,7 @@
                 </select>
                 <input id="phone" name="phone" type="tel"
                     class="flex-1 rounded-xl border-2 border-gray-200 px-3 py-2.5 bg-white focus:border-[#017249] focus:ring-2 focus:ring-[#017249]/20 transition-all duration-200 placeholder-gray-400 text-sm"
-                    placeholder="08123456789" value="{{ old('phone', $phoneDisplayPrefill) }}"
+                    placeholder="8123456789" value="{{ old('phone', $phoneDisplayPrefill) }}"
                     {{ $isAuth && !$isGoogle ? 'readonly' : '' }}>
             </div>
         </div>

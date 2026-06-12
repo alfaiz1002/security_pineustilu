@@ -20,6 +20,8 @@ Route::view('/cerita', 'cerita')->name('cerita');
 
 Route::view('/', 'dashboard')->name('home');
 
+
+
 Route::view('dashboard', 'dashboard')->name('dashboard');
 
 // Cabin VIP/VVIP routes

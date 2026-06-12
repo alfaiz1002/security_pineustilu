@@ -86,17 +86,27 @@ class AvailabilityService
     }
 
     /**
-     * Compute availability for all units on a specific date.
+     * Compute availability for all units for a date range.
      *
      * @param array<string, array<int, array{id:int,name:string,default_people:int|null,max_people:int|null}>> $areaUnits
      * @param string $checkin The check-in date (Y-m-d)
+     * @param string $checkout The check-out date (Y-m-d)
+     * @param int|null $excludeBookingDetailId Optional booking detail ID to exclude
      * @return array<int, string> Unit ID => 'available' | 'booked'
      */
-    public function computeAvailabilityForDate(array $areaUnits, string $checkin): array
+    public function computeAvailabilityForDateRange(array $areaUnits, string $checkin, string $checkout, ?int $excludeBookingDetailId = null): array
     {
-        $bookedUnitIds = BookingDetail::whereDate('check_in', '<=', $checkin)
+        $query = BookingDetail::whereDate('check_in', '<', $checkout)
             ->whereDate('check_out', '>', $checkin)
-            ->pluck('unit_id')
+            ->whereHas('booking', function ($q) {
+                $q->where('status', '!=', 'dibatalkan');
+            });
+            
+        if ($excludeBookingDetailId !== null) {
+            $query->where('id', '!=', $excludeBookingDetailId);
+        }
+            
+        $bookedUnitIds = $query->pluck('unit_id')
             ->map(fn ($v) => (int) $v)
             ->all();
 
@@ -113,6 +123,19 @@ class AvailabilityService
     }
 
     /**
+     * Compute availability for all units on a specific date (legacy support).
+     *
+     * @param array<string, array<int, array{id:int,name:string,default_people:int|null,max_people:int|null}>> $areaUnits
+     * @param string $checkin The check-in date (Y-m-d)
+     * @return array<int, string> Unit ID => 'available' | 'booked'
+     */
+    public function computeAvailabilityForDate(array $areaUnits, string $checkin): array
+    {
+        $checkout = \Carbon\Carbon::parse($checkin)->addDay()->toDateString();
+        return $this->computeAvailabilityForDateRange($areaUnits, $checkin, $checkout);
+    }
+
+    /**
      * Check if a unit is available for a date range.
      *
      * @param int $unitId The unit ID
@@ -125,7 +148,10 @@ class AvailabilityService
     {
         $query = BookingDetail::where('unit_id', $unitId)
             ->whereDate('check_in', '<', $checkout)
-            ->whereDate('check_out', '>', $checkin);
+            ->whereDate('check_out', '>', $checkin)
+            ->whereHas('booking', function ($q) {
+                $q->where('status', '!=', 'dibatalkan');
+            });
 
         if ($excludeBookingDetailId !== null) {
             $query->where('id', '!=', $excludeBookingDetailId);

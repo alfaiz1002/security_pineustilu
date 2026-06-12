@@ -17,6 +17,7 @@
             <input type="hidden" id="originalToken" value="{{ $originalBooking->token_code ?? '' }}" />
             <input type="hidden" id="originalTotalValue" value="{{ $originalTotal ?? 0 }}" />
             <input type="hidden" id="originalTotalDisplay" value="{{ $originalTotalDisplay ?? '' }}" />
+            <input type="hidden" id="rescheduleFee" value="{{ $rescheduleFee ?? 0 }}" />
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                 <!-- LEFT COLUMN: Detail Reservasi (spans 2 columns on large screens) -->
@@ -44,134 +45,6 @@
 <script src="{{ asset('js/flatpickr.js') }}" defer></script>
 @vite(['resources/js/pages/reservasi-glamping.js'])
 
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-    const token = document.getElementById('originalToken')?.value;
-    const originalTotalValue = Number(document.getElementById('originalTotalValue')?.value || 0);
-    const originalDisplay = document.getElementById('originalTotalDisplay')?.value || '';
-
-    // Helper functions
-    function formatToRupiah(num){
-        try{
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
-        }catch(e){
-            return 'Rp ' + (num || 0).toLocaleString('id-ID');
-        }
-    }
-
-    // Call API to estimate reschedule pricing
-    async function estimateReschedulePricing() {
-        const checkin = document.getElementById('checkin')?.value;
-        const checkout = document.getElementById('checkout')?.value;
-        const unitId = document.getElementById('selected_unit')?.value;
-
-        if (!checkin || !checkout || !unitId || !token) {
-            return;
-        }
-        const guestCount = parseInt(document.getElementById('guestCount')?.value) || 1;
-        const extraChargeMode = document.getElementById('extraChargeMode')?.value || '';
-        
-        const extraItems = {};
-        document.querySelectorAll('.amenity-qty-input').forEach(input => {
-            const qty = parseInt(input.value) || 0;
-            if (qty > 0) {
-                const itemId = input.dataset.itemId;
-                if (itemId) {
-                    extraItems[itemId] = qty;
-                }
-            }
-        });
-
-        try {
-            const response = await fetch(`/api/reschedule/${token}/estimate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                },
-                body: JSON.stringify({
-                    checkin: checkin,
-                    checkout: checkout,
-                    unit_id: parseInt(unitId),
-                    guest_count: guestCount,
-                    extra_charge_mode: extraChargeMode,
-                    extra_items: extraItems
-                }),
-            });
-
-            if (!response.ok) {
-                console.error('API error:', response.status);
-                return;
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-                updateReschedulePreview(data);
-            }
-        } catch (error) {
-            console.error('Estimation error:', error);
-        }
-    }
-
-    // Update preview with breakdown
-    function updateReschedulePreview(data) {
-        const breakdown = data.breakdown;
-
-        // Update breakdown elements for reschedule
-        const originalPriceEl = document.getElementById('previewOriginalPrice');
-        const newPriceEl = document.getElementById('previewNewPrice');
-        const differencePriceEl = document.getElementById('previewPriceDifference');
-
-        if (originalPriceEl) {
-            originalPriceEl.textContent = formatToRupiah(breakdown.original_price);
-        }
-
-        if (newPriceEl) {
-            newPriceEl.textContent = formatToRupiah(breakdown.new_price);
-        }
-
-        if (differencePriceEl) {
-            differencePriceEl.textContent = formatToRupiah(breakdown.price_difference);
-
-            // Color code the difference
-            if (breakdown.price_difference > 0) {
-                // Positive difference - need to pay more (red/orange)
-                differencePriceEl.className = 'font-semibold text-red-600';
-            } else if (breakdown.price_difference < 0) {
-                // Negative difference - getting refund (green)
-                differencePriceEl.className = 'font-semibold text-green-600';
-            } else {
-                // No difference (gray)
-                differencePriceEl.className = 'font-semibold text-gray-800';
-            }
-        }
-    }
-
-    // Listen to date/unit changes
-    const checkinInput = document.getElementById('checkin');
-    const checkoutInput = document.getElementById('checkout');
-    const unitSelect = document.getElementById('selected_unit');
-
-    if (checkinInput) checkinInput.addEventListener('change', estimateReschedulePricing);
-    if (checkoutInput) checkoutInput.addEventListener('change', estimateReschedulePricing);
-    if (unitSelect) unitSelect.addEventListener('change', estimateReschedulePricing);
-    
-    // Listen to guest count and extra items changes
-    const guestCountInput = document.getElementById('guestCount');
-    if (guestCountInput) guestCountInput.addEventListener('change', estimateReschedulePricing);
-    
-    const extraChargeModeInput = document.getElementById('extraChargeMode');
-    if (extraChargeModeInput) extraChargeModeInput.addEventListener('change', estimateReschedulePricing);
-    
-    document.querySelectorAll('.amenity-qty-input').forEach(input => {
-        input.addEventListener('change', estimateReschedulePricing);
-    });
-
-    // Initial estimate on load
-    setTimeout(estimateReschedulePricing, 500);
-});
-</script>
 
 @endpush
 @endsection
