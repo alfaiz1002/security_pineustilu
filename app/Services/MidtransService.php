@@ -305,6 +305,9 @@ class MidtransService
                 return;
             }
 
+            // Log payment webhook received
+            AuditLogService::logPaymentWebhookReceived($orderId, $transactionStatus ?? 'unknown');
+
             $payment = Payment::where('order_id', $orderId)->first();
             if (!$payment) {
                 Log::warning('Payment not found for order_id: ' . $orderId);
@@ -317,8 +320,15 @@ class MidtransService
             // Update booking status based on payment status
             if (in_array($transactionStatus, ['settlement', 'capture'])) {
                 $payment->booking->update(['status' => 'berhasil']);
+                // Log payment success
+                AuditLogService::logPaymentSuccess($orderId, (float) $payment->gross_amount, $payment->booking?->user_id);
             } elseif ($transactionStatus === 'deny') {
                 $payment->booking->update(['status' => 'booking']);
+            }
+
+            // Log payment failed or expired/cancelled
+            if (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                AuditLogService::logPaymentFailed($orderId, $transactionStatus, $payment->booking?->user_id);
             }
 
             Log::info('Payment notification processed', [

@@ -18,6 +18,7 @@ use App\Models\SeasonDate;
 use App\Models\User;
 use App\Services\AvailabilityService;
 use App\Services\PricingService;
+use App\Services\AuditLogService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -735,6 +736,8 @@ class BookingController extends Controller
             ]);
         });
 
+        session(['verified_detail_token' => $token]);
+
         return redirect()->route('reservasi.detail-pesanan', ['token' => $token]);
     }
 
@@ -861,6 +864,26 @@ class BookingController extends Controller
         $booking = Booking::with(['bookingDetails.unit.area', 'bookingOutbounds.outbound', 'bookingOutbounds.outboundVariant'])
             ->where('token_code', $token)
             ->firstOrFail();
+
+        // Jika booking milik user terdaftar
+        if ($booking->user_id) {
+            if (!auth()->check() || $booking->user_id !== auth()->id()) {
+                AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+                AuditLogService::logIdorAttempt($token, auth()->id());
+                abort(403, 'Anda tidak memiliki hak akses untuk melihat pesanan ini.');
+            }
+        }
+
+        // Jika booking milik guest (user_id null)
+        // Validasi menggunakan session seperti cancellation
+        if (!$booking->user_id) {
+            if (session('verified_detail_token') !== $token) {
+                AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+                AuditLogService::logIdorAttempt($token, auth()->id());
+                return redirect()->route('cancellation')
+                    ->with('error', 'Silakan verifikasi identitas Anda terlebih dahulu.');
+            }
+        }
 
         // Map booking status to view status string
         $statusMap = [
@@ -1092,6 +1115,14 @@ class BookingController extends Controller
     {
         $booking = Booking::where('token_code', $token)->firstOrFail();
 
+        // Check if this booking is a reschedule
+        $isReschedule = false;
+        $detail = $booking->bookingDetails->first();
+        if ($detail && $detail->note) {
+            $note = json_decode($detail->note, true);
+            $isReschedule = !empty($note['reschedule_info']['is_reschedule']);
+        }
+
         $newStatus = $request->input('status');
 
         $validTransitions = [
@@ -1136,6 +1167,9 @@ class BookingController extends Controller
                 $booking->delete();
             });
 
+            // Log cancellation approval
+            AuditLogService::logCancellationApproved($token, Auth::user()?->email);
+
             if ($request->expectsJson()) {
                 return response()->json(['success' => true, 'message' => 'Booking cancelled successfully.']);
             }
@@ -1146,6 +1180,11 @@ class BookingController extends Controller
         // For other status updates, proceed normally
         $booking->status = BookingStatus::from($newStatus);
         $booking->save();
+
+        // Log reschedule approval if transition to 'berhasil' and was a reschedule
+        if ($newStatus === 'berhasil' && $isReschedule) {
+            AuditLogService::logRescheduleApproved($token, Auth::user()?->email);
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
@@ -1181,6 +1220,11 @@ class BookingController extends Controller
                 $error = 'Booking dengan status "' . $booking->status->label() . '" tidak dapat di-reschedule.';
                 $booking = null;
             }
+
+            if ($booking) {
+                session(['verified_reschedule_token' => $booking->token_code]);
+                session(['verified_detail_token' => $booking->token_code]);
+            }
         } elseif ($code || $email) {
             $error = 'Silakan masukkan kode booking dan email untuk melanjutkan.';
         }
@@ -1204,6 +1248,9 @@ class BookingController extends Controller
         if (!$booking) {
             return redirect()->route('reschedule')->with('error', 'Kode booking tidak ditemukan.');
         }
+
+        session(['verified_reschedule_token' => $booking->token_code]);
+        session(['verified_detail_token' => $booking->token_code]);
 
         if ($booking->booking_type !== 'glamping') {
             return redirect()->route('reschedule')->with('error', 'Reschedule hanya tersedia untuk pemesanan Glamping melalui halaman ini.');
@@ -1307,6 +1354,15 @@ class BookingController extends Controller
      */
     public function processReschedule(Request $request, string $token): \Illuminate\Http\RedirectResponse
     {
+        $tokenCode = strtoupper(trim($token));
+
+        if (session('verified_reschedule_token') !== $tokenCode) {
+            AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+            AuditLogService::logIdorAttempt($tokenCode, auth()->id());
+            return redirect()->route('reschedule')
+                ->with('error', 'Sesi reschedule tidak valid. Silakan cari booking Anda terlebih dahulu.');
+        }
+
         $request->validate([
             'checkin' => ['required', 'date', 'after_or_equal:today'],
             'checkout' => ['required', 'date', 'after:checkin'],
@@ -1513,6 +1569,8 @@ class BookingController extends Controller
             $booking->save();
         });
 
+        AuditLogService::logRescheduleRequested($booking->token_code, $booking->user_id);
+
         // Semua reschedule diarahkan ke halaman detail pesanan untuk konfirmasi (tahap booking)
         if ($paymentStatus === 'payment_required') {
             $msg = 'Silakan periksa detail reschedule dan lanjutkan pembayaran untuk selisih harga.';
@@ -1553,6 +1611,11 @@ class BookingController extends Controller
             } elseif (!$booking->canBeCancelled()) {
                 $error = 'Booking dengan status "' . $booking->status->label() . '" tidak dapat dibatalkan.';
                 $booking = null;
+            }
+
+            if ($booking) {
+                session(['verified_cancellation_token' => $booking->token_code]);
+                session(['verified_detail_token' => $booking->token_code]);
             }
         } elseif ($code || $email) {
             $error = 'Silakan masukkan kode booking dan email untuk melanjutkan.';
@@ -1622,9 +1685,16 @@ class BookingController extends Controller
      */
     public function showCancellationConfirmPage(Request $request): \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
     {
-        $code = $request->input('code');
+        $code = $request->input('code') ? strtoupper(trim($request->input('code'))) : null;
         if (!$code) {
             return redirect()->route('cancellation')->with('error', 'Kode booking tidak disediakan.');
+        }
+
+        if (session('verified_cancellation_token') !== $code) {
+            AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+            AuditLogService::logIdorAttempt($code, auth()->id());
+            return redirect()->route('cancellation')
+                ->with('error', 'Sesi pembatalan tidak valid. Silakan cari booking Anda terlebih dahulu.');
         }
 
         $booking = Booking::with([
@@ -1667,6 +1737,14 @@ class BookingController extends Controller
         ]);
 
         $code = strtoupper(trim($request->input('code')));
+
+        if (session('verified_cancellation_token') !== $code) {
+            AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+            AuditLogService::logIdorAttempt($code, auth()->id());
+            return redirect()->route('cancellation')
+                ->with('error', 'Sesi pembatalan tidak valid. Silakan cari booking Anda terlebih dahulu.');
+        }
+
         $booking = Booking::with(['bookingDetails', 'bookingOutbounds'])->where('token_code', $code)->first();
 
         if (!$booking) {
@@ -1700,6 +1778,9 @@ class BookingController extends Controller
 
             // TODO: enqueue refund job / integrate payment gateway if required
         });
+
+        // Log cancellation request
+        AuditLogService::logCancellationRequested($booking->token_code, (float) $refundAmount, $booking->user_id);
 
         return redirect()->route('cancellation.success', ['code' => $booking->token_code])->with('success', 'Pembatalan dan pengembalian dana berhasil diproses.');
     }
@@ -1747,6 +1828,14 @@ class BookingController extends Controller
         ]);
 
         $code = strtoupper(trim($request->input('code')));
+
+        if (session('verified_cancellation_token') !== $code) {
+            AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+            AuditLogService::logIdorAttempt($code, auth()->id());
+            return redirect()->route('cancellation')
+                ->with('error', 'Sesi pembatalan tidak valid. Silakan cari booking Anda terlebih dahulu.');
+        }
+
         $booking = Booking::where('token_code', $code)->first();
 
         if (!$booking) {
@@ -1781,6 +1870,9 @@ class BookingController extends Controller
             $booking->save();
         });
 
+        // Log cancellation request
+        AuditLogService::logCancellationRequested($booking->token_code, (float) $refundAmount, $booking->user_id);
+
         return redirect()->route('cancellation')
             ->with('success', 'Booking berhasil dibatalkan. Terima kasih telah menghubungi kami.');
     }
@@ -1792,6 +1884,17 @@ class BookingController extends Controller
      */
     public function estimateReschedulePrice(Request $request, string $token): \Illuminate\Http\JsonResponse
     {
+        $tokenCode = strtoupper(trim($token));
+
+        if (session('verified_reschedule_token') !== $tokenCode) {
+            AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+            AuditLogService::logIdorAttempt($tokenCode, auth()->id());
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi reschedule tidak valid. Silakan cari booking Anda terlebih dahulu.'
+            ], 403);
+        }
+
         $request->validate([
             'checkin' => ['required', 'date'],
             'checkout' => ['required', 'date', 'after:checkin'],

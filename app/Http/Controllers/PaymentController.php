@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Services\MidtransService;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -31,11 +32,27 @@ class PaymentController extends Controller
             }
 
             // Check if user is authorized to view this booking
-            if ($booking->user_id && auth()->id() && $booking->user_id !== auth()->id()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized',
-                ], 403);
+            if ($booking->user_id) {
+                if (!auth()->check() || $booking->user_id !== auth()->id()) {
+                    AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+                    AuditLogService::logIdorAttempt($bookingToken, auth()->id());
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized',
+                    ], 403);
+                }
+            }
+
+            // Jika booking milik guest (user_id null)
+            if (!$booking->user_id) {
+                if (session('verified_detail_token') !== $bookingToken) {
+                    AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+                    AuditLogService::logIdorAttempt($bookingToken, auth()->id());
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized',
+                    ], 403);
+                }
             }
 
             // Generate or get existing Snap token
@@ -112,12 +129,28 @@ class PaymentController extends Controller
                 ], 404);
             }
 
-            // Check if user is authorized
-            if ($booking->user_id && auth()->id() && $booking->user_id !== auth()->id()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized',
-                ], 403);
+            // Check if user is authorized to view this booking
+            if ($booking->user_id) {
+                if (!auth()->check() || $booking->user_id !== auth()->id()) {
+                    AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+                    AuditLogService::logIdorAttempt($bookingToken, auth()->id());
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized',
+                    ], 403);
+                }
+            }
+
+            // Jika booking milik guest (user_id null)
+            if (!$booking->user_id) {
+                if (session('verified_detail_token') !== $bookingToken) {
+                    AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
+                    AuditLogService::logIdorAttempt($bookingToken, auth()->id());
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized',
+                    ], 403);
+                }
             }
 
             $payment = $booking->payments()->latest()->first();

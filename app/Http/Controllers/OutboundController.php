@@ -167,6 +167,8 @@ class OutboundController extends Controller
         ]);
 
         // Redirect to order details page
+        session(['verified_detail_token' => $tokenCode]);
+
         return redirect()->route('reservasi.detail-pesanan', ['token' => $tokenCode])
             ->with('success', 'Reservasi outbound berhasil dibuat!');
     }
