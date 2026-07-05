@@ -11,16 +11,38 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Bypass CSRF untuk route verify-otp dan Midtrans notification
+        $middleware->validateCsrfTokens(except: [
+            'api/payment/notification',
+            'verify-otp',
+        ]);
+
+        // Daftarkan middleware BlockHiddenFiles secara global
+        $middleware->append(\App\Http\Middleware\BlockHiddenFiles::class);
+
+        // Daftarkan middleware LogInvalidSession untuk mendeteksi CSRF/session invalid
+        $middleware->append(\App\Http\Middleware\LogInvalidSession::class);
+
+        // Daftarkan middleware DetectInjectionMiddleware secara global
+        $middleware->append(\App\Http\Middleware\DetectInjectionMiddleware::class);
+
+        // Daftarkan middleware DetectDebugEndpointMiddleware secara global
+        $middleware->append(\App\Http\Middleware\DetectDebugEndpointMiddleware::class);
+
+        // Daftarkan middleware SecurityHeadersMiddleware secara global
+        $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
+
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
-
-        $middleware->validateCsrfTokens(except: [
-            'api/payment/notification',
-        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->withProviders([
+        // Service Provider untuk audit event listeners (2FA failed, dll)
+        \App\Providers\AuditEventServiceProvider::class,
+    ])
+    ->create();

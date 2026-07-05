@@ -37,8 +37,8 @@ class RegistrationTest extends TestCase
         ]);
 
         $response->assertSessionHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect(route('otp.verify.form', absolute: false));
 
-        $this->assertAuthenticated();
+        $this->assertGuest();
     }
 }

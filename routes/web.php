@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\OTPController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\ItemController;
@@ -19,8 +21,6 @@ use Laravel\Fortify\Features;
 Route::view('/cerita', 'cerita')->name('cerita');
 
 Route::view('/', 'dashboard')->name('home');
-
-
 
 Route::view('dashboard', 'dashboard')->name('dashboard');
 
@@ -62,7 +62,7 @@ Route::get('/availability/data', [BookingController::class, 'getAvailabilityData
 // Reservasi Glamping Routes (User-facing dengan BookingController)
 Route::get('/reservasi/glamping', [BookingController::class, 'showGlampingReservation'])->name('reservasi.glamping');
 Route::get('/reservasi/glamping/area-info/{slug}', [BookingController::class, 'getGlampingAreaInfo'])->name('reservasi.glamping.area-info');
-Route::post('/reservasi/glamping', [BookingController::class, 'store'])->name('reservasi.glamping.store');
+Route::post('/reservasi/glamping', [BookingController::class, 'store'])->middleware('throttle:5,1')->name('reservasi.glamping.store');
 
 // Detail Pesanan Route
 Route::get('/reservasi/detail-pesanan/{token}', [BookingController::class, 'showDetailPesanan'])->name('reservasi.detail-pesanan');
@@ -70,7 +70,7 @@ Route::post('/reservasi/detail-pesanan/{token}/update-status', [BookingControlle
 
 // Reservasi Outbound Route (use controller for data)
 Route::get('/reservasi/outbound', [OutboundController::class, 'reservasiOutbound'])->name('reservasi.outbound');
-Route::post('/reservasi/outbound', [OutboundController::class, 'store'])->name('reservasi.outbound.store');
+Route::post('/reservasi/outbound', [OutboundController::class, 'store'])->middleware('throttle:5,1')->name('reservasi.outbound.store');
 // Redirect untuk URL salah ketik/legacy
 Route::permanentRedirect('/reservasi/outbond', '/reservasi/outbound')->name('reservasi.outbond.legacy');
 
@@ -96,10 +96,19 @@ Route::prefix('api')->middleware(['throttle:60,1'])->group(function () {
 
 // Midtrans webhook notification (no rate limiting for webhooks)
 Route::post('/api/payment/notification', [PaymentController::class, 'handleNotification'])
-    ->middleware('throttle:unlimited')
     ->name('api.payment.notification');
 
 Route::get('/barang-tambahan', [ItemController::class, 'index'])->name('barang-tambahan');
+
+// OTP Registration & Verification
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.store')->middleware('throttle:otp-register');
+    Route::get('/verify-otp', [OTPController::class, 'showVerifyForm'])->name('otp.verify.form');
+    Route::post('/verify-otp', [OTPController::class, 'verify'])->name('otp.verify')->middleware('throttle:otp-verify');
+    Route::post('/resend-otp', [OTPController::class, 'resend'])->name('otp.resend')->middleware('throttle:otp-resend');
+    Route::post('/login-otp-start', [AuthController::class, 'loginOtpStart'])->name('login.otp.start')->middleware('throttle:login');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
