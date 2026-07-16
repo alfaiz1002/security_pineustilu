@@ -233,13 +233,14 @@ class OrderDetailsModal {
         } else {
             // Check-in and Check-out for glamping
             dateSection.innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="text-xs font-semibold text-[#017249] mb-2">Check-In</h4>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1">
+                        <h4 class="text-xs font-semibold text-[#017249] mb-1">Check-In</h4>
                         <p class="text-sm font-bold text-gray-800">${this.formatDate(data.check_in)}</p>
                     </div>
-                    <div>
-                        <h4 class="text-xs font-semibold text-[#017249] mb-2">Check-Out</h4>
+                    <div class="w-px bg-gray-200 hidden sm:block"></div>
+                    <div class="flex-1">
+                        <h4 class="text-xs font-semibold text-[#017249] mb-1">Check-Out</h4>
                         <p class="text-sm font-bold text-gray-800">${this.formatDate(data.check_out)}</p>
                     </div>
                 </div>

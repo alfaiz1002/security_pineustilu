@@ -23,17 +23,17 @@ $marginClass = $noMargin ? '' : 'my-4 sm:my-6 md:my-8';
 
             <!-- Right Buttons -->
             <div class="flex flex-row gap-3 sm:gap-3 md:gap-4 flex-shrink-0 w-full md:w-auto justify-center md:justify-end" data-aos="fade-up" data-aos-delay="200" data-aos-duration="800">
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLScFQ12XFWnqwS-pMvwTI1iRyWzlWjNQHOkUfpfN6yALiV-0MQ/viewform" target="_blank" class="group inline-flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 bg-white hover:bg-gray-50 text-[#017249] px-4 py-2.5 sm:px-5 sm:py-2.5 md:px-8 md:py-3.5 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-sm sm:text-sm md:text-lg whitespace-nowrap">
+                <a href="{{ route('reschedule') }}" class="group inline-flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 bg-white hover:bg-gray-50 text-[#017249] w-[140px] sm:w-[160px] md:w-[220px] py-2.5 md:py-3.5 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-sm sm:text-sm md:text-lg whitespace-nowrap">
                     <svg class="w-4 h-4 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    Reschedule
+                    <span>Reschedule</span>
                 </a>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLScFQ12XFWnqwS-pMvwTI1iRyWzlWjNQHOkUfpfN6yALiV-0MQ/viewform" target="_blank" class="group inline-flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 sm:px-5 sm:py-2.5 md:px-8 md:py-3.5 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-sm sm:text-sm md:text-lg whitespace-nowrap">
+                <a href="{{ route('cancellation') }}" class="group inline-flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 bg-red-500 hover:bg-red-600 text-white w-[140px] sm:w-[160px] md:w-[220px] py-2.5 md:py-3.5 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-sm sm:text-sm md:text-lg whitespace-nowrap">
                     <svg class="w-4 h-4 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    Cancel
+                    <span>Cancel</span>
                 </a>
             </div>
         </div>

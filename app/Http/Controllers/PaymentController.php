@@ -14,9 +14,7 @@ class PaymentController extends Controller
         private readonly MidtransService $midtransService,
     ) {}
 
-    /**
-     * Get Snap token for booking
-     */
+
     public function getSnapToken(Request $request, string $bookingToken): JsonResponse
     {
         try {
@@ -36,6 +34,25 @@ class PaymentController extends Controller
                     'success' => false,
                     'message' => 'Unauthorized',
                 ], 403);
+            }
+
+            // Reuse existing snap token if still valid (not expired)
+            $existingPayment = $booking->payments()
+                ->whereNotNull('snaptoken')
+                ->where('transaction_status', 'pending')
+                ->where('expired_at', '>', now())
+                ->latest()
+                ->first();
+
+            if ($existingPayment?->snaptoken) {
+                return response()->json([
+                    'success'    => true,
+                    'token'      => $existingPayment->snaptoken,
+                    'client_key' => $this->midtransService->getClientKey(),
+                    'snap_js_url'=> $this->midtransService->getSnapJsUrl(),
+                    'booking_id' => $booking->id,
+                    'order_id'   => $existingPayment->order_id,
+                ]);
             }
 
             // Generate or get existing Snap token
@@ -67,16 +84,12 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Handle Midtrans notification callback
-     */
+
     public function handleNotification(Request $request): JsonResponse
     {
         try {
             $notification = $request->all();
 
-            // Verify notification signature (recommended for production)
-            // You can verify the signature using your server key and the notification body
 
             $this->midtransService->handleNotification($notification);
 
@@ -95,9 +108,7 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Get payment status
-     */
+
     public function getPaymentStatus(Request $request, string $bookingToken): JsonResponse
     {
         try {

@@ -83,7 +83,7 @@
                                             <div id="price-{{ $key }}" class="bg-white/5 rounded-2xl p-4 mt-2 hidden border border-white/5">
                                                 <div class="space-y-2 text-sm">
                                                     @foreach($prices[$key] as $price)
-                                                        <div class="flex justify-between items-center">
+                                                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                                                             <span class="text-white/80">{{ $normalizeLabel($price['label'] ?? '') }}</span>
                                                             <span class="font-bold text-emerald-300">{{ $formatRupiah($price['price']) }}</span>
                                                         </div>
@@ -113,11 +113,11 @@
                                     </button>
                                     <div id="price-weekdays" class="bg-white/5 rounded-2xl p-4 mt-4 hidden border border-white/5">
                                         <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                                                 <span class="text-white/80">Deck 1, 2, 8, 9 (Tent 4.2)</span>
                                                 <span class="font-bold text-emerald-300">IDR 750.000</span>
                                             </div>
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                                                 <span class="text-white/80">Deck 3, 4, 5, 6, 7 (Tent 4.0)</span>
                                                 <span class="font-bold text-emerald-300">IDR 650.000</span>
                                             </div>
@@ -144,11 +144,11 @@
                                     </button>
                                     <div id="price-weekend" class="bg-white/5 rounded-2xl p-4 mt-4 hidden border border-white/5">
                                         <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                                                 <span class="text-white/80">Deck 1, 2, 8, 9 (Tent 4.2)</span>
                                                 <span class="font-bold text-amber-300">IDR 950.000</span>
                                             </div>
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                                                 <span class="text-white/80">Deck 3, 4, 5, 6, 7 (Tent 4.0)</span>
                                                 <span class="font-bold text-amber-300">IDR 900.000</span>
                                             </div>
@@ -174,7 +174,7 @@
                                         </svg>
                                     </button>
                                     <div id="price-high" class="bg-white/5 rounded-2xl p-4 mt-4 hidden border border-white/5">
-                                        <div class="flex justify-between items-center text-sm">
+                                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 text-sm">
                                             <span class="text-white/80">All Decks</span>
                                             <span class="font-bold text-rose-300">IDR 1.100.000</span>
                                         </div>
@@ -281,7 +281,7 @@
                                 <div id="cap-additional" class="bg-white/5 rounded-2xl p-4 mt-4 hidden border border-white/5">
                                     <div class="space-y-3">
                                         <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
-                                            <div class="flex justify-between items-center mb-1">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 mb-1">
                                                 <span class="font-bold text-violet-300">IDR {{ number_format($area->extra_charge_full ?? 100000, 0, ',', '.') }}</span>
                                                 <span class="text-xs text-white/60">/person</span>
                                             </div>
@@ -289,7 +289,7 @@
                                         </div>
                                         <div class="text-center text-white/40 text-xs">or</div>
                                         <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
-                                            <div class="flex justify-between items-center mb-1">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 mb-1">
                                                 <span class="font-bold text-violet-300">IDR {{ number_format($area->extra_charge_breakfast ?? 40000, 0, ',', '.') }}</span>
                                                 <span class="text-xs text-white/60">/person</span>
                                             </div>

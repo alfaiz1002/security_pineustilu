@@ -12,9 +12,7 @@ class DetailPesanan {
     bookingToken = null;
     snapLoaded = false;
 
-    /**
-     * Initialize the page
-     */
+
     init() {
         this.updateUrl = document.body.dataset.updateStatusUrl;
         this.csrfToken = qs('meta[name="csrf-token"]')?.content;
@@ -27,9 +25,6 @@ class DetailPesanan {
         this.bindEvents();
     }
 
-    /**
-     * Bind event listeners
-     */
     bindEvents() {
         const proceedBtn = qs('[data-action="proceed-to-payment"]');
         if (proceedBtn) {
@@ -41,16 +36,12 @@ class DetailPesanan {
             payBtn.addEventListener('click', () => this.completePayment());
         }
 
-        // Copy booking code functionality
         const copyBtn = qs('#copyCodeBtn');
         if (copyBtn) {
             copyBtn.addEventListener('click', () => this.copyBookingCode());
         }
     }
 
-    /**
-     * Copy booking code to clipboard
-     */
     copyBookingCode() {
         const codeEl = qs('#bookingCode');
         if (!codeEl) return;
@@ -58,7 +49,7 @@ class DetailPesanan {
         const code = codeEl.textContent.trim();
 
         navigator.clipboard.writeText(code).then(() => {
-            // Show success feedback
+
             const copyBtn = qs('#copyCodeBtn');
             const originalHtml = copyBtn.innerHTML;
             copyBtn.innerHTML = `
@@ -71,7 +62,7 @@ class DetailPesanan {
                 copyBtn.innerHTML = originalHtml;
             }, 2000);
         }).catch(err => {
-            // Fallback for older browsers
+
             const textArea = document.createElement('textarea');
             textArea.value = code;
             textArea.style.position = 'fixed';
@@ -137,7 +128,9 @@ class DetailPesanan {
         // Show modal
         modal.classList.remove('hidden');
 
-        // Fetch snap token from backend
+        // Selalu fetch token dari backend.
+        // Backend akan me-return token yang sudah di-cache di DB (tidak hit Midtrans API lagi)
+        // sehingga aman dipanggil berulang kali.
         this.fetchSnapToken();
     }
 
@@ -158,6 +151,13 @@ class DetailPesanan {
                     'X-Requested-With': 'XMLHttpRequest',
                 }
             });
+
+            // Handle non-JSON responses gracefully
+            const contentType = response.headers.get('content-type') ?? '';
+            if (!contentType.includes('application/json')) {
+                this.showSnapError('Failed to load payment gateway. Please try again.');
+                return;
+            }
 
             const data = await response.json();
 
@@ -213,7 +213,8 @@ class DetailPesanan {
         // Show container
         containerEl.style.display = 'block';
 
-        // Use embedded mode (better for modal)
+        // SDK selalu fresh karena direset di resetSnapModal(),
+        // sehingga snap.embed() dapat dipanggil tanpa masalah internal state.
         window.snap.embed(snapToken, {
             embedId: 'snap-container',
             onSuccess: (result) => this.onPaymentSuccess(result),
@@ -224,7 +225,6 @@ class DetailPesanan {
 
         this.snapLoaded = true;
     }
-
     /**
      * Handle successful payment
      */
@@ -258,22 +258,61 @@ class DetailPesanan {
     }
 
     /**
-     * Handle payment close
+     * Handle payment close (user menutup popup Snap tanpa menyelesaikan)
      */
     onPaymentClose() {
         console.log('Payment modal closed by user');
-        // User closed the payment modal without completing
-        // Don't update booking status
+        // Reset state agar bersih ketika modal dibuka kembali
+        this.resetSnapModal();
     }
 
     /**
-     * Close Snap payment modal
+     * Close Snap payment modal dan reset state
      */
     closeSnapModal() {
         const modal = qs('#snapPaymentModal');
         if (modal) {
             modal.classList.add('hidden');
         }
+        // Reset semua state modal agar fresh saat dibuka kembali
+        this.resetSnapModal();
+    }
+
+    /**
+     * Reset semua UI state modal ke kondisi awal (loading).
+     * Juga menghapus Midtrans SDK dari memory agar fresh saat dimuat ulang.
+     */
+    resetSnapModal() {
+        const loadingEl = qs('#snapLoading');
+        const containerEl = qs('#snap-container');
+        const errorEl = qs('#snapError');
+        const errorMessageEl = qs('#snapErrorMessage');
+
+        // Kembalikan loading spinner ke tampilan awal
+        if (loadingEl) loadingEl.style.display = '';
+
+        // Ganti node snap-container secara fisik dengan elemen baru yang identik.
+        if (containerEl && containerEl.parentNode) {
+            const freshContainer = document.createElement('div');
+            freshContainer.id = 'snap-container';
+            freshContainer.className = containerEl.className;
+            freshContainer.style.cssText = 'min-height: 700px; display: none;';
+            containerEl.parentNode.replaceChild(freshContainer, containerEl);
+        }
+
+        // Sembunyikan dan kosongkan pesan error
+        if (errorEl) errorEl.classList.add('hidden');
+        if (errorMessageEl) errorMessageEl.textContent = '';
+
+        // Hapus Midtrans SDK dari memory dan DOM.
+        // Browser akan menggunakannya dari cache (tidak ada network request baru)
+        // sehingga SDK selalu fresh tanpa stale internal state.
+        delete window.snap;
+        const snapScript = document.querySelector('script[src*="snap"]');
+        if (snapScript) snapScript.remove();
+
+        // Reset flag snapLoaded
+        this.snapLoaded = false;
     }
 
     /**

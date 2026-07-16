@@ -141,8 +141,7 @@
                         </svg>
                     </div>
                     <span
-                        class="text-[10px] sm:text-xs font-semibold text-center {{ ($status ?? 'booking') === 'selesai' ? 'text-[#017249]' : 'text-gray-600' }}"><span
-                            class="hidden sm:inline">Com</span>pleted</span>
+                        class="text-[10px] sm:text-xs font-semibold text-center {{ ($status ?? 'booking') === 'selesai' ? 'text-[#017249]' : 'text-gray-600' }}">Completed</span>
                 </div>
             </div>
         </div>
@@ -160,13 +159,13 @@
                 </div>
             @else
                 <!-- Check-In & Check-Out for Glamping -->
-                <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div class="bg-gradient-to-br from-[#f8fffe] to-white rounded-2xl p-4 border border-[#017249]/10">
-                        <h3 class="text-xs font-semibold text-[#017249] mb-2">Check-In</h3>
+                <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                    <div class="flex-1 bg-gradient-to-br from-[#f8fffe] to-white rounded-2xl p-4 border border-[#017249]/10">
+                        <h3 class="text-xs font-semibold text-[#017249] mb-1">Check-In</h3>
                         <p class="text-sm font-bold text-gray-800">{{ $checkin ?? 'Monday, Nov 10, 2025' }}</p>
                     </div>
-                    <div class="bg-gradient-to-br from-[#f8fffe] to-white rounded-2xl p-4 border border-[#017249]/10">
-                        <h3 class="text-xs font-semibold text-[#017249] mb-2">Check-Out</h3>
+                    <div class="flex-1 bg-gradient-to-br from-[#f8fffe] to-white rounded-2xl p-4 border border-[#017249]/10">
+                        <h3 class="text-xs font-semibold text-[#017249] mb-1">Check-Out</h3>
                         <p class="text-sm font-bold text-gray-800">{{ $checkout ?? 'Tuesday, Nov 11, 2025' }}</p>
                     </div>
                 </div>
@@ -185,19 +184,19 @@
                             Guest Details :
                         </h2>
                         <div class="space-y-3 text-sm">
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="font-semibold text-[#017249]">Full Name</span>
                                 <span class="text-gray-700">{{ $name ?? 'Ahmad Surahmat' }}</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="font-semibold text-[#017249]">Phone Number</span>
                                 <span class="text-gray-700">{{ $phone ?? '08123456789' }}</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="font-semibold text-[#017249]">Email Address</span>
-                                <span class="text-gray-700 break-words">{{ $email ?? 'Surahmat@Email.Com' }}</span>
+                                <span class="text-gray-700 break-all">{{ $email ?? 'Surahmat@Email.Com' }}</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="font-semibold text-[#017249]">Number of Guests</span>
                                 <span class="text-gray-700">{{ $guestCount ?? '4' }} People</span>
                             </div>
@@ -276,7 +275,7 @@
                         <!-- Price -->
                         <div class="space-y-2">
                             <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Price</h3>
-                            <div class="flex justify-between items-center text-sm">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4 text-sm">
                                 @if(($bookingType ?? 'glamping') === 'outbound')
                                     <span class="text-gray-700">{{ $outboundName ?? '-' }} ({{ $guestCount ?? 1 }} pax)</span>
                                 @else
@@ -291,7 +290,7 @@
                             <div class="space-y-2 pt-3 border-t border-gray-200">
                                 <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Additional Charges</h3>
                                 @foreach($additionalCosts as $cost)
-                                    <div class="flex justify-between items-center text-sm">
+                                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4 text-sm">
                                         <span class="text-gray-700">{{ $cost['name'] }}</span>
                                         <span class="text-gray-800">{{ $cost['price'] }}</span>
                                     </div>
@@ -300,7 +299,7 @@
                         @else
                             <div class="space-y-2 pt-3 border-t border-gray-200">
                                 <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Additional Charges</h3>
-                                <div class="flex justify-between items-center text-sm">
+                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4 text-sm">
                                     <span class="text-gray-500">Tidak ada biaya tambahan</span>
                                     <span class="text-gray-800">Rp 0</span>
                                 </div>
@@ -309,10 +308,9 @@
 
                         <!-- Total -->
                         <div class="pt-4 border-t-2 border-[#017249]/20">
-                            <div class="flex justify-between items-center">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="text-base font-bold text-[#017249]">Total Price</span>
-                                <span
-                                    class="text-xl font-extrabold text-[#017249]">{{ $totalPrice ?? 'Rp 1.300.000' }}</span>
+                                <span class="text-xl font-extrabold text-[#017249]">{{ $totalPrice ?? 'Rp 1.300.000' }}</span>
                             </div>
                         </div>
                     </div>
@@ -556,7 +554,7 @@
 
 
     {{-- Snap Payment Modal --}}
-    <div id="snapPaymentModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div id="snapPaymentModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-auto">
             <!-- Modal Header -->
             <div

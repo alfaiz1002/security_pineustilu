@@ -30,6 +30,7 @@ export default defineConfig({
                 'resources/js/pages/reservasi-glamping.js',
                 'resources/js/pages/reservasi-outbound.js',
                 'resources/js/pages/order-details-modal.js',
+                'resources/js/pages/cancellation-confirm.js',
             ],
             refresh: true,
         }),

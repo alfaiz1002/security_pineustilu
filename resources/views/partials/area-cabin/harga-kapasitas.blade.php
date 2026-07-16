@@ -88,10 +88,9 @@
                                                 class="bg-white/5 rounded-2xl p-4 mt-2 hidden border border-[#D4AF6A]/10">
                                                 <div class="space-y-2 text-sm">
                                                     @foreach ($prices[$key] as $price)
-                                                        <div class="flex justify-between items-center">
+                                                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                                                             <span class="text-white/80">{{ $price['label'] }}</span>
-                                                            <span
-                                                                class="font-bold text-[#E8CFA0]">{{ $formatRupiah($price['price']) }}</span>
+                                                            <span class="font-bold text-[#E8CFA0]">{{ $formatRupiah($price['price']) }}</span>
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -126,7 +125,7 @@
                                     <div id="price-weekdays"
                                         class="bg-white/5 rounded-2xl p-4 mt-4 hidden border border-[#D4AF6A]/10">
                                         <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                                                 <span class="text-white/80">Cabin {{ $cabinTier ?? 'VVIP' }}</span>
                                                 <span class="font-bold text-[#E8CFA0]">IDR 750.000</span>
                                             </div>
@@ -160,7 +159,7 @@
                                     <div id="price-weekend"
                                         class="bg-white/5 rounded-2xl p-4 mt-4 hidden border border-[#D4AF6A]/10">
                                         <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between items-center">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                                                 <span class="text-white/80">Cabin {{ $cabinTier ?? 'VVIP' }}</span>
                                                 <span class="font-bold text-[#E8CFA0]">IDR 950.000</span>
                                             </div>
@@ -193,7 +192,7 @@
                                     </button>
                                     <div id="price-high"
                                         class="bg-white/5 rounded-2xl p-4 mt-4 hidden border border-[#D4AF6A]/10">
-                                        <div class="flex justify-between items-center text-sm">
+                                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 text-sm">
                                             <span class="text-white/80">Cabin {{ $cabinTier ?? 'VVIP' }}</span>
                                             <span class="font-bold text-[#E8CFA0]">IDR 1.100.000</span>
                                         </div>
