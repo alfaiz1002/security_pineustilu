@@ -125,11 +125,6 @@ class DetailPesanan {
         // Show modal (loading spinner) briefly before Midtrans popup appears
         modal.classList.remove('hidden');
 
-<<<<<<< Updated upstream
-        // Selalu fetch token dari backend.
-        // Backend akan me-return token yang sudah di-cache di DB (tidak hit Midtrans API lagi)
-        // sehingga aman dipanggil berulang kali.
-=======
         // Hide floating WhatsApp button so it doesn't block clicks
         const floatingWA = document.getElementById('floatingWhatsApp');
         if (floatingWA) {
@@ -137,8 +132,9 @@ class DetailPesanan {
             floatingWA.style.pointerEvents = 'none';
         }
 
-        // Fetch token from backend and trigger payment
->>>>>>> Stashed changes
+        // Selalu fetch token dari backend.
+        // Backend akan me-return token yang sudah di-cache di DB (tidak hit Midtrans API lagi)
+        // sehingga aman dipanggil berulang kali.
         this.fetchSnapToken();
     }
 
@@ -276,10 +272,8 @@ class DetailPesanan {
         if (modal) {
             modal.classList.add('hidden');
         }
-<<<<<<< Updated upstream
         // Reset semua state modal agar fresh saat dibuka kembali
         this.resetSnapModal();
-=======
 
         // Restore floating WhatsApp button visibility
         const floatingWA = document.getElementById('floatingWhatsApp');
@@ -287,7 +281,6 @@ class DetailPesanan {
             floatingWA.style.opacity = '';
             floatingWA.style.pointerEvents = '';
         }
->>>>>>> Stashed changes
     }
 
     /**
