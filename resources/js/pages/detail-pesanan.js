@@ -118,19 +118,27 @@ class DetailPesanan {
         this.updateBookingStatus('pembayaran');
     }
 
-    /**
-     * Complete payment - Initialize Midtrans Snap payment
-     */
     completePayment() {
         const modal = qs('#snapPaymentModal');
         if (!modal) return;
 
-        // Show modal
+        // Show modal (loading spinner) briefly before Midtrans popup appears
         modal.classList.remove('hidden');
 
+<<<<<<< Updated upstream
         // Selalu fetch token dari backend.
         // Backend akan me-return token yang sudah di-cache di DB (tidak hit Midtrans API lagi)
         // sehingga aman dipanggil berulang kali.
+=======
+        // Hide floating WhatsApp button so it doesn't block clicks
+        const floatingWA = document.getElementById('floatingWhatsApp');
+        if (floatingWA) {
+            floatingWA.style.opacity = '0';
+            floatingWA.style.pointerEvents = 'none';
+        }
+
+        // Fetch token from backend and trigger payment
+>>>>>>> Stashed changes
         this.fetchSnapToken();
     }
 
@@ -197,26 +205,16 @@ class DetailPesanan {
     }
 
     /**
-     * Display Snap payment embedded in modal
+     * Display Snap payment popup natively
      */
     displaySnapPayment(snapToken) {
-        const loadingEl = qs('#snapLoading');
-        const containerEl = qs('#snap-container');
-        const errorEl = qs('#snapError');
+        // Hide our custom modal entirely and use Midtrans' native popup which works perfectly on mobile
+        const modal = qs('#snapPaymentModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
 
-        if (!containerEl) return;
-
-        // Hide loading and error states
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (errorEl) errorEl.classList.add('hidden');
-
-        // Show container
-        containerEl.style.display = 'block';
-
-        // SDK selalu fresh karena direset di resetSnapModal(),
-        // sehingga snap.embed() dapat dipanggil tanpa masalah internal state.
-        window.snap.embed(snapToken, {
-            embedId: 'snap-container',
+        window.snap.pay(snapToken, {
             onSuccess: (result) => this.onPaymentSuccess(result),
             onPending: (result) => this.onPaymentPending(result),
             onError: (result) => this.onPaymentError(result),
@@ -262,57 +260,47 @@ class DetailPesanan {
      */
     onPaymentClose() {
         console.log('Payment modal closed by user');
-        // Reset state agar bersih ketika modal dibuka kembali
-        this.resetSnapModal();
+        
+        // Restore floating WhatsApp button visibility
+        const floatingWA = document.getElementById('floatingWhatsApp');
+        if (floatingWA) {
+            floatingWA.style.opacity = '';
+            floatingWA.style.pointerEvents = '';
+        }
+        
+        // Do not reset state so the user can continue payment if they reopen it
     }
 
-    /**
-     * Close Snap payment modal dan reset state
-     */
     closeSnapModal() {
         const modal = qs('#snapPaymentModal');
         if (modal) {
             modal.classList.add('hidden');
         }
+<<<<<<< Updated upstream
         // Reset semua state modal agar fresh saat dibuka kembali
         this.resetSnapModal();
+=======
+
+        // Restore floating WhatsApp button visibility
+        const floatingWA = document.getElementById('floatingWhatsApp');
+        if (floatingWA) {
+            floatingWA.style.opacity = '';
+            floatingWA.style.pointerEvents = '';
+        }
+>>>>>>> Stashed changes
     }
 
     /**
      * Reset semua UI state modal ke kondisi awal (loading).
-     * Juga menghapus Midtrans SDK dari memory agar fresh saat dimuat ulang.
      */
     resetSnapModal() {
         const loadingEl = qs('#snapLoading');
-        const containerEl = qs('#snap-container');
         const errorEl = qs('#snapError');
         const errorMessageEl = qs('#snapErrorMessage');
 
-        // Kembalikan loading spinner ke tampilan awal
         if (loadingEl) loadingEl.style.display = '';
-
-        // Ganti node snap-container secara fisik dengan elemen baru yang identik.
-        if (containerEl && containerEl.parentNode) {
-            const freshContainer = document.createElement('div');
-            freshContainer.id = 'snap-container';
-            freshContainer.className = containerEl.className;
-            freshContainer.style.cssText = 'min-height: 700px; display: none;';
-            containerEl.parentNode.replaceChild(freshContainer, containerEl);
-        }
-
-        // Sembunyikan dan kosongkan pesan error
         if (errorEl) errorEl.classList.add('hidden');
         if (errorMessageEl) errorMessageEl.textContent = '';
-
-        // Hapus Midtrans SDK dari memory dan DOM.
-        // Browser akan menggunakannya dari cache (tidak ada network request baru)
-        // sehingga SDK selalu fresh tanpa stale internal state.
-        delete window.snap;
-        const snapScript = document.querySelector('script[src*="snap"]');
-        if (snapScript) snapScript.remove();
-
-        // Reset flag snapLoaded
-        this.snapLoaded = false;
     }
 
     /**

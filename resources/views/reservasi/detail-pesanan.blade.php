@@ -554,7 +554,11 @@
 
 
     {{-- Snap Payment Modal --}}
+<<<<<<< Updated upstream
     <div id="snapPaymentModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+=======
+    <div id="snapPaymentModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+>>>>>>> Stashed changes
         <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-auto">
             <!-- Modal Header -->
             <div
