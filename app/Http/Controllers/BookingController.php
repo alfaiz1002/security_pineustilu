@@ -16,12 +16,14 @@ use App\Models\Item;
 use App\Models\Price;
 use App\Models\SeasonDate;
 use App\Models\User;
+use App\Mail\BookingConfirmationMail;
 use App\Services\AvailabilityService;
 use App\Services\PricingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -734,6 +736,20 @@ class BookingController extends Controller
                 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ]);
         });
+
+        // Kirim email konfirmasi reservasi
+        $createdBooking = Booking::where('token_code', $token)->with('user')->first();
+        if ($createdBooking) {
+            $recipientEmail = $createdBooking->guest_email
+                ?? $createdBooking->user?->email;
+            if ($recipientEmail) {
+                try {
+                    Mail::to($recipientEmail)->send(new BookingConfirmationMail($createdBooking));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning('Gagal kirim email konfirmasi booking: ' . $e->getMessage());
+                }
+            }
+        }
 
         return redirect()->route('reservasi.detail-pesanan', ['token' => $token]);
     }
