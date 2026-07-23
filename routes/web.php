@@ -142,8 +142,11 @@ Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
         return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
     }
 
+    // Default 10 iterations for Cloud Web HTTP to fit within Nginx 30s timeout limit
+    $iterations = min((int) $request->query('iterations', 10), 15);
+
     \Illuminate\Support\Facades\Artisan::call('benchmark:otp', [
-        '--iterations' => 50,
+        '--iterations' => $iterations,
         '--chart' => true,
     ]);
 
@@ -151,7 +154,7 @@ Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
         $stats = json_decode(\Illuminate\Support\Facades\Storage::get('benchmark/statistics.json'), true);
         return response()->json([
             'status' => 'success',
-            'environment_note' => 'Render Cloud Server Benchmark Output',
+            'environment_note' => "Render Cloud Server Benchmark Output ({$iterations} Iterations)",
             'executed_at' => now()->toIso8601String(),
             'statistics' => $stats,
         ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -162,4 +165,5 @@ Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
         'cli_output' => \Illuminate\Support\Facades\Artisan::output(),
     ]);
 });
+
 
