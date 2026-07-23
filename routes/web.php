@@ -142,8 +142,8 @@ Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
         return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
     }
 
-    // Default 10 iterations for Cloud Web HTTP to fit within Nginx 30s timeout limit
-    $iterations = min((int) $request->query('iterations', 10), 15);
+    // Restored to exactly 50 iterations as required by thesis methodology
+    $iterations = (int) $request->query('iterations', 50);
 
     \Illuminate\Support\Facades\Artisan::call('benchmark:otp', [
         '--iterations' => $iterations,
@@ -165,5 +165,6 @@ Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
         'cli_output' => \Illuminate\Support\Facades\Artisan::output(),
     ]);
 });
+
 
 
