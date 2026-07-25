@@ -1,0 +1,25 @@
+[providers]
+providers = ["php", "node"]
+
+[variables]
+NODE_OPTIONS = "--max-old-space-size=384"
+NPM_CONFIG_PREFER_OFFLINE = "true"
+NPM_CONFIG_AUDIT = "false"
+NPM_CONFIG_FUND = "false"
+
+[phases.setup]
+nixPkgs = ["php82", "php82Packages.composer", "nodejs_20"]
+
+[phases.install]
+cmds = [
+    "composer install --no-dev --optimize-autoloader --no-interaction",
+    "npm install --no-audit --no-fund --prefer-offline --no-optional"
+]
+
+[phases.build]
+cmds = [
+    "npm run build"
+]
+
+[start]
+cmd = "php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
