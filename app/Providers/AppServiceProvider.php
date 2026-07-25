@@ -77,22 +77,26 @@ class AppServiceProvider extends ServiceProvider
                 });
         });
 
-        // Login Rate Limiter: max 5 attempts per 15 minutes
+        // Login Rate Limiter: max 5 attempts per 15 minutes (Dual check: by IP and by Email)
         RateLimiter::for('login', function (Request $request) {
             $email = strtolower($request->input('email', ''));
-            return Limit::perMinutes(15, 5)
-                ->by('login|' . ($email ?: 'guest') . '|' . $request->ip())
-                ->response(function (Request $request, array $headers) {
-                    if ($request->wantsJson() || $request->ajax()) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.',
-                        ], 429, $headers);
-                    }
+            
+            $responseCallback = function (Request $request, array $headers) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.',
+                    ], 429, $headers);
+                }
 
-                    return back()->withInput($request->only('email', 'remember'))
-                        ->withErrors(['email' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.']);
-                });
+                return back()->withInput($request->only('email', 'remember'))
+                    ->withErrors(['email' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.']);
+            };
+
+            return [
+                Limit::perMinutes(15, 5)->by('login_ip|' . $request->ip())->response($responseCallback),
+                Limit::perMinutes(15, 5)->by('login_email|' . ($email ?: 'guest'))->response($responseCallback),
+            ];
         });
     }
 }
