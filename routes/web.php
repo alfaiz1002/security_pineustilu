@@ -147,14 +147,17 @@ Route::middleware(['auth'])->group(function () {
 Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('google.callback');
 
-// Temporary Cloud Benchmark Route for Render.com (Safe isolated endpoint)
+// Temporary Cloud Benchmark Route for Render.com/Hostinger (Safe isolated endpoint)
 Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
     if ($request->query('key') !== 'pineustilu2026') {
         return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
     }
 
+    // Restored to exactly 50 iterations as required by thesis methodology
+    $iterations = (int) $request->query('iterations', 50);
+
     \Illuminate\Support\Facades\Artisan::call('benchmark:otp', [
-        '--iterations' => 50,
+        '--iterations' => $iterations,
         '--chart' => true,
     ]);
 
@@ -162,7 +165,7 @@ Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
         $stats = json_decode(\Illuminate\Support\Facades\Storage::get('benchmark/statistics.json'), true);
         return response()->json([
             'status' => 'success',
-            'environment_note' => 'Render Cloud Server Benchmark Output',
+            'environment_note' => "Cloud Server Benchmark Output ({$iterations} Iterations)",
             'executed_at' => now()->toIso8601String(),
             'statistics' => $stats,
         ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -173,4 +176,34 @@ Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
         'cli_output' => \Illuminate\Support\Facades\Artisan::output(),
     ]);
 });
+
+// Direct Web Route to View HTML Benchmark Chart Dashboard in Browser
+Route::get('/dev/benchmark-otp/chart', function (\Illuminate\Http\Request $request) {
+    if ($request->query('key') !== 'pineustilu2026') {
+        return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
+    }
+
+    if (\Illuminate\Support\Facades\Storage::exists('benchmark/charts/index.html')) {
+        return response(\Illuminate\Support\Facades\Storage::get('benchmark/charts/index.html'), 200)
+            ->header('Content-Type', 'text/html');
+    }
+
+    return response('Benchmark chart has not been generated yet. Please run /dev/benchmark-otp first.', 404);
+});
+
+// Direct Web Route to Download raw_data.csv in Browser
+Route::get('/dev/benchmark-otp/csv', function (\Illuminate\Http\Request $request) {
+    if ($request->query('key') !== 'pineustilu2026') {
+        return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
+    }
+
+    if (\Illuminate\Support\Facades\Storage::exists('benchmark/raw_data.csv')) {
+        return \Illuminate\Support\Facades\Storage::download('benchmark/raw_data.csv', 'raw_data_hostinger.csv');
+    }
+
+    return response('raw_data.csv has not been generated yet. Please run /dev/benchmark-otp first.', 404);
+});
+
+
+
 
