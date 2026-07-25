@@ -8,10 +8,18 @@ NPM_CONFIG_AUDIT = "false"
 NPM_CONFIG_FUND = "false"
 
 [phases.setup]
-nixPkgs = ["php82", "php82Packages.composer", "nodejs_20"]
+nixPkgs = [
+    "php82",
+    "php82Extensions.intl",
+    "php82Extensions.zip",
+    "php82Extensions.gd",
+    "php82Extensions.pdo_mysql",
+    "php82Packages.composer",
+    "nodejs_20"
+]
 
 [phases.install]
-cmd = "composer install --no-dev --optimize-autoloader --no-interaction && npm install --no-audit --no-fund --prefer-offline"
+cmd = "composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs && npm install --no-audit --no-fund --prefer-offline"
 
 [phases.build]
 cmd = "npm run build"
