@@ -76,5 +76,23 @@ class AppServiceProvider extends ServiceProvider
                     ], 429, $headers);
                 });
         });
+
+        // Login Rate Limiter: max 5 attempts per 15 minutes
+        RateLimiter::for('login', function (Request $request) {
+            $email = strtolower($request->input('email', ''));
+            return Limit::perMinutes(15, 5)
+                ->by('login|' . ($email ?: 'guest') . '|' . $request->ip())
+                ->response(function (Request $request, array $headers) {
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.',
+                        ], 429, $headers);
+                    }
+
+                    return back()->withInput($request->only('email', 'remember'))
+                        ->withErrors(['email' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.']);
+                });
+        });
     }
 }
