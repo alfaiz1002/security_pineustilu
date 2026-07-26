@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ActivityLogResource\Pages;
 use App\Models\ActivityLog;
+use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -61,11 +62,50 @@ class ActivityLogResource extends Resource
     }
 
     /**
-     * Form kosong — resource ini tidak memiliki form create/edit.
+     * Schema modal View Audit Log (Read-Only).
      */
     public static function form(Form $form): Form
     {
-        return $form->schema([]);
+        return $form
+            ->schema([
+                Forms\Components\Section::make('Rincian Log Aktivitas')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\DateTimePicker::make('created_at')
+                                    ->label('Waktu Kejadian')
+                                    ->disabled(),
+
+                                Forms\Components\TextInput::make('ip_address')
+                                    ->label('IP Address')
+                                    ->disabled(),
+
+                                Forms\Components\TextInput::make('event')
+                                    ->label('Kategori Event')
+                                    ->disabled(),
+
+                                Forms\Components\TextInput::make('severity')
+                                    ->label('Tingkat Keparahan (Severity)')
+                                    ->disabled(),
+
+                                Forms\Components\TextInput::make('user.name')
+                                    ->label('Nama User')
+                                    ->placeholder('Guest / Tidak Terautentikasi')
+                                    ->disabled(),
+
+                                Forms\Components\TextInput::make('user.email')
+                                    ->label('Email User')
+                                    ->placeholder('-')
+                                    ->disabled(),
+                            ]),
+
+                        Forms\Components\Textarea::make('description')
+                            ->label('Deskripsi Detail Kejadian')
+                            ->rows(4)
+                            ->columnSpanFull()
+                            ->disabled(),
+                    ]),
+            ]);
     }
 
     public static function table(Table $table): Table
