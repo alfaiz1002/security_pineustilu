@@ -373,8 +373,20 @@ class MidtransService
                     if ($recipientEmail) {
                         try {
                             Mail::to($recipientEmail)->send(new PaymentConfirmationMail($payment->fresh('booking.user')));
+                            AuditLogService::log(
+                                'email_payment_sent',
+                                "Email konfirmasi pembayaran lunas ({$orderId}) berhasil dikirim ke {$recipientEmail}",
+                                $booking->user_id,
+                                'INFO'
+                            );
                         } catch (\Exception $mailEx) {
                             Log::warning('Gagal kirim email konfirmasi pembayaran: ' . $mailEx->getMessage());
+                            AuditLogService::log(
+                                'email_payment_failed',
+                                "Gagal kirim email konfirmasi pembayaran ({$orderId}) ke {$recipientEmail}: " . $mailEx->getMessage(),
+                                $booking->user_id,
+                                'WARNING'
+                            );
                         }
                     }
                 } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {

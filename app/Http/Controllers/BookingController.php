@@ -747,8 +747,20 @@ class BookingController extends Controller
             if ($recipientEmail) {
                 try {
                     Mail::to($recipientEmail)->send(new BookingConfirmationMail($createdBooking));
+                    AuditLogService::log(
+                        'email_booking_sent',
+                        "Email konfirmasi reservasi ({$token}) berhasil dikirim ke {$recipientEmail}",
+                        $createdBooking->user_id,
+                        'INFO'
+                    );
                 } catch (\Exception $e) {
                     Log::warning('Gagal kirim email konfirmasi booking: ' . $e->getMessage());
+                    AuditLogService::log(
+                        'email_booking_failed',
+                        "Gagal kirim email konfirmasi reservasi ({$token}) ke {$recipientEmail}: " . $e->getMessage(),
+                        $createdBooking->user_id,
+                        'WARNING'
+                    );
                 }
             }
         }
