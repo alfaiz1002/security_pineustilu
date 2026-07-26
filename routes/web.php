@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\OTPController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\ItemController;
@@ -19,8 +21,6 @@ use Laravel\Fortify\Features;
 Route::view('/cerita', 'cerita')->name('cerita');
 
 Route::view('/', 'dashboard')->name('home');
-
-
 
 Route::view('dashboard', 'dashboard')->name('dashboard');
 
@@ -62,7 +62,7 @@ Route::get('/availability/data', [BookingController::class, 'getAvailabilityData
 // Reservasi Glamping Routes (User-facing dengan BookingController)
 Route::get('/reservasi/glamping', [BookingController::class, 'showGlampingReservation'])->name('reservasi.glamping');
 Route::get('/reservasi/glamping/area-info/{slug}', [BookingController::class, 'getGlampingAreaInfo'])->name('reservasi.glamping.area-info');
-Route::post('/reservasi/glamping', [BookingController::class, 'store'])->name('reservasi.glamping.store');
+Route::post('/reservasi/glamping', [BookingController::class, 'store'])->middleware('throttle:5,1')->name('reservasi.glamping.store');
 
 // Detail Pesanan Route
 Route::get('/reservasi/detail-pesanan/{token}', [BookingController::class, 'showDetailPesanan'])->name('reservasi.detail-pesanan');
@@ -70,7 +70,7 @@ Route::post('/reservasi/detail-pesanan/{token}/update-status', [BookingControlle
 
 // Reservasi Outbound Route (use controller for data)
 Route::get('/reservasi/outbound', [OutboundController::class, 'reservasiOutbound'])->name('reservasi.outbound');
-Route::post('/reservasi/outbound', [OutboundController::class, 'store'])->name('reservasi.outbound.store');
+Route::post('/reservasi/outbound', [OutboundController::class, 'store'])->middleware('throttle:5,1')->name('reservasi.outbound.store');
 // Redirect untuk URL salah ketik/legacy
 Route::permanentRedirect('/reservasi/outbond', '/reservasi/outbound')->name('reservasi.outbond.legacy');
 
@@ -94,12 +94,19 @@ Route::prefix('api')->middleware(['throttle:60,1'])->group(function () {
     Route::get('/payment/status/{bookingToken}', [PaymentController::class, 'getPaymentStatus'])->name('api.payment.status');
 });
 
-// Midtrans webhook notification (no rate limiting for webhooks)
-Route::post('/api/payment/notification', [PaymentController::class, 'handleNotification'])
-    ->middleware('throttle:unlimited')
-    ->name('api.payment.notification');
+
 
 Route::get('/barang-tambahan', [ItemController::class, 'index'])->name('barang-tambahan');
+
+// OTP Registration & Verification
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.store')->middleware('throttle:otp-register');
+    Route::get('/verify-otp', [OTPController::class, 'showVerifyForm'])->name('otp.verify.form');
+    Route::post('/verify-otp', [OTPController::class, 'verify'])->name('otp.verify')->middleware('throttle:otp-verify');
+    Route::post('/resend-otp', [OTPController::class, 'resend'])->name('otp.resend')->middleware('throttle:otp-resend');
+    Route::post('/login-otp-start', [AuthController::class, 'loginOtpStart'])->name('login.otp.start')->middleware('throttle:login');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -128,3 +135,67 @@ Route::middleware(['auth'])->group(function () {
 // Google OAuth Routes
 Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('google.callback');
+
+// Temporary Cloud Benchmark Route for Render.com/Hostinger (Safe isolated endpoint)
+Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
+    if ($request->query('key') !== 'pineustilu2026') {
+        return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
+    }
+
+    @set_time_limit(300);
+    @ini_set('max_execution_time', '300');
+
+    // Restored to default 50 iterations as required by thesis methodology (can be adjusted via ?iterations=20 for cloud HTTP proxies)
+    $iterations = (int) $request->query('iterations', 50);
+
+    \Illuminate\Support\Facades\Artisan::call('benchmark:otp', [
+        '--iterations' => $iterations,
+        '--chart' => true,
+    ]);
+
+    if (\Illuminate\Support\Facades\Storage::exists('benchmark/statistics.json')) {
+        $stats = json_decode(\Illuminate\Support\Facades\Storage::get('benchmark/statistics.json'), true);
+        return response()->json([
+            'status' => 'success',
+            'environment_note' => "Cloud Server Benchmark Output ({$iterations} Iterations)",
+            'executed_at' => now()->toIso8601String(),
+            'statistics' => $stats,
+        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    return response()->json([
+        'status' => 'completed',
+        'cli_output' => \Illuminate\Support\Facades\Artisan::output(),
+    ]);
+});
+
+// Direct Web Route to View HTML Benchmark Chart Dashboard in Browser
+Route::get('/dev/benchmark-otp/chart', function (\Illuminate\Http\Request $request) {
+    if ($request->query('key') !== 'pineustilu2026') {
+        return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
+    }
+
+    if (\Illuminate\Support\Facades\Storage::exists('benchmark/charts/index.html')) {
+        return response(\Illuminate\Support\Facades\Storage::get('benchmark/charts/index.html'), 200)
+            ->header('Content-Type', 'text/html');
+    }
+
+    return response('Benchmark chart has not been generated yet. Please run /dev/benchmark-otp first.', 404);
+});
+
+// Direct Web Route to Download raw_data.csv in Browser
+Route::get('/dev/benchmark-otp/csv', function (\Illuminate\Http\Request $request) {
+    if ($request->query('key') !== 'pineustilu2026') {
+        return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
+    }
+
+    if (\Illuminate\Support\Facades\Storage::exists('benchmark/raw_data.csv')) {
+        return \Illuminate\Support\Facades\Storage::download('benchmark/raw_data.csv', 'raw_data_hostinger.csv');
+    }
+
+    return response('raw_data.csv has not been generated yet. Please run /dev/benchmark-otp first.', 404);
+});
+
+
+
+

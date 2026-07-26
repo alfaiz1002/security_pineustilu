@@ -30,6 +30,7 @@ class User extends Authenticatable implements FilamentUser
         'google_id',
         'country_code',
         'phone',
+        'phone_verified_at',
         'email_verified_at',
     ];
 
@@ -54,6 +55,7 @@ class User extends Authenticatable implements FilamentUser
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

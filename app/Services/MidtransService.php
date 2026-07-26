@@ -5,10 +5,12 @@ namespace App\Services;
 use App\Mail\PaymentConfirmationMail;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Services\AuditLogService;
 use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class MidtransService
 {
@@ -66,6 +68,14 @@ class MidtransService
                     'body'   => $response->body(),
                     'booking_id' => $booking->id,
                 ]);
+
+                AuditLogService::log(
+                    'midtrans_api_failed',
+                    "Gagal membuat Snap Token untuk booking ID {$booking->id}. HTTP Status: " . $response->status(),
+                    $booking->user_id,
+                    'WARNING'
+                );
+
                 return null;
             }
 
@@ -102,6 +112,14 @@ class MidtransService
                 'booking_id' => $booking->id,
                 'exception'  => $e,
             ]);
+
+            AuditLogService::log(
+                'midtrans_api_failed',
+                "Gagal membuat Snap Token untuk booking ID {$booking->id}. Exception: " . $e->getMessage(),
+                $booking->user_id,
+                'WARNING'
+            );
+
             return null;
         }
     }
@@ -301,9 +319,9 @@ class MidtransService
     }
 
     /**
-     * Handle payment notification from Midtrans
+     * Handle verified payment notification from Midtrans
      */
-    public function handleNotification(array $notificationData): void
+    public function handleVerifiedNotification(array $notificationData): void
     {
         try {
             $orderId = $notificationData['order_id'] ?? null;
@@ -315,40 +333,62 @@ class MidtransService
                 return;
             }
 
-            $payment = Payment::where('order_id', $orderId)->first();
-            if (!$payment) {
-                Log::warning('Payment not found for order_id: ' . $orderId);
-                return;
-            }
+            // Log payment webhook received
+            AuditLogService::logPaymentWebhookReceived($orderId, $transactionStatus ?? 'unknown');
 
-            // Update payment status
-            $this->updatePaymentStatus($payment, $transactionStatus, $transactionId, $notificationData);
-
-            // Update booking status based on payment status
-            if (in_array($transactionStatus, ['settlement', 'capture'])) {
-                $payment->booking->update(['status' => 'berhasil']);
-
-                // Kirim email konfirmasi pembayaran
-                $booking = $payment->booking->load('user');
-                $recipientEmail = $booking->guest_email ?? $booking->user?->email;
-                if ($recipientEmail) {
-                    try {
-                        Mail::to($recipientEmail)->send(new PaymentConfirmationMail($payment->fresh('booking.user')));
-                    } catch (\Exception $mailEx) {
-                        Log::warning('Gagal kirim email konfirmasi pembayaran: ' . $mailEx->getMessage());
-                    }
+            DB::transaction(function () use ($orderId, $transactionStatus, $transactionId, $notificationData) {
+                $payment = Payment::where('order_id', $orderId)->lockForUpdate()->first();
+                if (!$payment) {
+                    Log::warning('Payment not found for order_id: ' . $orderId);
+                    return;
                 }
-            } elseif (in_array($transactionStatus, ['cancel', 'expire'])) {
-                $payment->booking->update(['status' => 'dibatalkan']);
-            } elseif ($transactionStatus === 'deny') {
-                $payment->booking->update(['status' => 'booking']);
-            }
 
-            Log::info('Payment notification processed', [
-                'order_id' => $orderId,
-                'transaction_status' => $transactionStatus,
-                'booking_id' => $payment->booking_id,
-            ]);
+                $booking = Booking::where('id', $payment->booking_id)->lockForUpdate()->first();
+                if (!$booking) {
+                    Log::warning('Booking not found for payment: ' . $payment->id);
+                    return;
+                }
+
+                // Cek idempotensi
+                if ($booking->status->value === 'berhasil' && in_array($transactionStatus, ['settlement', 'capture'])) {
+                    Log::info('Replay ignored: Booking already marked as berhasil', ['order_id' => $orderId]);
+                    return;
+                }
+                if ($booking->status->value === 'dibatalkan' && in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                    Log::info('Replay ignored: Booking already marked as dibatalkan', ['order_id' => $orderId]);
+                    return;
+                }
+
+                // Update payment status
+                $this->updatePaymentStatus($payment, $transactionStatus, $transactionId, $notificationData);
+
+                // Update booking status berdasarkan status pembayaran
+                if (in_array($transactionStatus, ['settlement', 'capture'])) {
+                    $booking->update(['status' => 'berhasil']);
+                    // Log payment success
+                    AuditLogService::logPaymentSuccess($orderId, (float) $payment->gross_amount, $booking->user_id);
+
+                    // Kirim email konfirmasi pembayaran
+                    $recipientEmail = $booking->guest_email ?? $booking->user?->email;
+                    if ($recipientEmail) {
+                        try {
+                            Mail::to($recipientEmail)->send(new PaymentConfirmationMail($payment->fresh('booking.user')));
+                        } catch (\Exception $mailEx) {
+                            Log::warning('Gagal kirim email konfirmasi pembayaran: ' . $mailEx->getMessage());
+                        }
+                    }
+                } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                    $booking->update(['status' => 'dibatalkan']);
+                    // Log payment failed
+                    AuditLogService::logPaymentFailed($orderId, $transactionStatus, $booking->user_id);
+                }
+
+                Log::info('Payment notification processed and updated in transaction', [
+                    'order_id' => $orderId,
+                    'transaction_status' => $transactionStatus,
+                    'booking_id' => $booking->id,
+                ]);
+            });
 
         } catch (Exception $e) {
             Log::error('Error handling Midtrans notification: ' . $e->getMessage(), [
@@ -396,6 +436,14 @@ class MidtransService
                     'order_id' => $orderId,
                     'status' => $response->status(),
                 ]);
+
+                AuditLogService::log(
+                    'midtrans_api_failed',
+                    "Gagal mengambil status pembayaran order {$orderId} dari Midtrans. HTTP Status: " . $response->status(),
+                    null,
+                    'WARNING'
+                );
+
                 return null;
             }
 
@@ -406,6 +454,14 @@ class MidtransService
                 'order_id' => $orderId,
                 'exception' => $e,
             ]);
+
+            AuditLogService::log(
+                'midtrans_api_failed',
+                "Gagal mengambil status pembayaran order {$orderId} dari Midtrans. Exception: " . $e->getMessage(),
+                null,
+                'WARNING'
+            );
+
             return null;
         }
     }
