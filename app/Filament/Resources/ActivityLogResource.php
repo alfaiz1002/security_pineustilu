@@ -147,7 +147,7 @@ class ActivityLogResource extends Resource
                             ]),
                     ]),
 
-                Infolists\Components\Section::make('Rincian Pengakses & IP Address')
+                Infolists\Components\Section::make('Rincian Pengakses, Perangkat & Lokasi IP')
                     ->schema([
                         Infolists\Components\Grid::make(2)
                             ->schema([
@@ -157,10 +157,21 @@ class ActivityLogResource extends Resource
                                     ->icon('heroicon-m-clock'),
 
                                 Infolists\Components\TextEntry::make('ip_address')
-                                    ->label('IP Address')
+                                    ->label('IP Address & Lokasi')
                                     ->icon('heroicon-m-globe-alt')
+                                    ->formatStateUsing(fn (?string $state): string => \App\Services\UserAgentParser::formatIp($state))
                                     ->copyable()
                                     ->copyMessage('IP address disalin!'),
+
+                                Infolists\Components\TextEntry::make('description')
+                                    ->label('Perangkat & Browser')
+                                    ->icon('heroicon-m-computer-desktop')
+                                    ->formatStateUsing(function ($state, ActivityLog $record): string {
+                                        if (preg_match('/User-Agent:\s*([^\)]+)/i', $record->description, $matches)) {
+                                            return \App\Services\UserAgentParser::parse($matches[1]);
+                                        }
+                                        return \App\Services\UserAgentParser::parse(request()->header('User-Agent'));
+                                    }),
 
                                 Infolists\Components\TextEntry::make('user.name')
                                     ->label('Nama User')
