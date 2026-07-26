@@ -153,7 +153,7 @@ class ActivityLogResource extends Resource
                             ->schema([
                                 Infolists\Components\TextEntry::make('created_at')
                                     ->label('Waktu Kejadian')
-                                    ->dateTime('d M Y, H:i:s WIB')
+                                    ->dateTime('d M Y, H:i:s \W\I\B')
                                     ->icon('heroicon-m-clock'),
 
                                 Infolists\Components\TextEntry::make('ip_address')
