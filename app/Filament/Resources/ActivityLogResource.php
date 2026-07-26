@@ -6,6 +6,8 @@ use App\Filament\Resources\ActivityLogResource\Pages;
 use App\Models\ActivityLog;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -66,44 +68,118 @@ class ActivityLogResource extends Resource
      */
     public static function form(Form $form): Form
     {
-        return $form
+        return $form->schema([]);
+    }
+
+    /**
+     * Modern Infolist Schema untuk Modal View Audit Log.
+     */
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
             ->schema([
-                Forms\Components\Section::make('Rincian Log Aktivitas')
+                Infolists\Components\Section::make('Informasi Keamanan & Status Event')
                     ->schema([
-                        Forms\Components\Grid::make(2)
+                        Infolists\Components\Grid::make(2)
                             ->schema([
-                                Forms\Components\DateTimePicker::make('created_at')
-                                    ->label('Waktu Kejadian')
-                                    ->disabled(),
-
-                                Forms\Components\TextInput::make('ip_address')
-                                    ->label('IP Address')
-                                    ->disabled(),
-
-                                Forms\Components\TextInput::make('event')
+                                Infolists\Components\TextEntry::make('event')
                                     ->label('Kategori Event')
-                                    ->disabled(),
+                                    ->badge()
+                                    ->color(fn (string $state): string => match ($state) {
+                                        'login', '2fa_success', 'payment_success', 'reschedule_approved', 'cancellation_approved' => 'success',
+                                        'login_failed', 'unauthorized_access', 'brute_force', 'sensitive_file_access', '2fa_failed', 'idor_attempt', 'sql_injection_attempt', 'ssrf_attempt', 'privilege_escalation', 'payment_failed', 'account_locked', 'bot_scraping_attempt' => 'danger',
+                                        'otp_verified', 'otp_sent', 'google_login', 'log_exported', 'payment_webhook_received', 'reschedule_requested', 'cancellation_requested', 'morikafe_menu_downloaded' => 'info',
+                                        'otp_failed', 'password_changed', 'password_reset_request', 'session_invalid', 'csp_violation', 'config_changed', 'debug_access', 'session_expired', 'concurrent_session', 'rate_limit_exceeded', 'reschedule_rejected', 'cancellation_rejected', 'account_unlocked' => 'warning',
+                                        'role_changed'         => 'primary',
+                                        'logout'               => 'gray',
+                                        default                => 'gray',
+                                    })
+                                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                                        'login'                => 'Login',
+                                        'login_failed'         => 'Login Gagal',
+                                        'otp_verified'         => 'OTP Berhasil',
+                                        'otp_failed'           => 'OTP Gagal',
+                                        'otp_sent'             => 'OTP Dikirim',
+                                        'google_login'         => 'Google Login',
+                                        'unauthorized_access'  => 'Akses Tidak Sah',
+                                        'logout'               => 'Logout',
+                                        'brute_force'          => 'Brute Force',
+                                        'password_changed'     => 'Ganti Password',
+                                        'password_reset_request' => 'Reset Password',
+                                        'role_changed'         => 'Ubah Role',
+                                        'sensitive_file_access' => 'Akses File Sensitif',
+                                        'session_invalid'      => 'Session Invalid',
+                                        '2fa_success'          => '2FA Berhasil',
+                                        '2fa_failed'           => '2FA Gagal',
+                                        'csp_violation'        => 'Pelanggaran CSP',
+                                        'idor_attempt'         => 'Percobaan IDOR',
+                                        'sql_injection_attempt'=> 'SQL Injection',
+                                        'ssrf_attempt'         => 'Percobaan SSRF',
+                                        'bot_scraping_attempt' => 'Percobaan Bot Scraping',
+                                        'morikafe_menu_downloaded' => 'Unduh Menu Morikafe',
+                                        'payment_success'      => 'Pembayaran Berhasil',
+                                        'payment_failed'       => 'Pembayaran Gagal',
+                                        'payment_webhook_received' => 'Webhook Midtrans',
+                                        'reschedule_requested' => 'Pengajuan Reschedule',
+                                        'reschedule_approved'  => 'Reschedule Disetujui',
+                                        'reschedule_rejected'  => 'Reschedule Ditolak',
+                                        'cancellation_requested' => 'Pengajuan Pembatalan',
+                                        'cancellation_approved'  => 'Pembatalan Disetujui',
+                                        'cancellation_rejected'  => 'Pembatalan Ditolak',
+                                        default                => ucfirst(str_replace('_', ' ', $state)),
+                                    }),
 
-                                Forms\Components\TextInput::make('severity')
+                                Infolists\Components\TextEntry::make('severity')
                                     ->label('Tingkat Keparahan (Severity)')
-                                    ->disabled(),
+                                    ->badge()
+                                    ->color(fn (string $state): string => match ($state) {
+                                        'CRITICAL' => 'danger',
+                                        'WARNING'  => 'warning',
+                                        'INFO'     => 'success',
+                                        default    => 'gray',
+                                    })
+                                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                                        'CRITICAL' => '🔴 CRITICAL',
+                                        'WARNING'  => '🟡 WARNING',
+                                        'INFO'     => '🟢 INFO',
+                                        default    => $state,
+                                    }),
+                            ]),
+                    ]),
 
-                                Forms\Components\TextInput::make('user.name')
+                Infolists\Components\Section::make('Rincian Pengakses & IP Address')
+                    ->schema([
+                        Infolists\Components\Grid::make(2)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('created_at')
+                                    ->label('Waktu Kejadian')
+                                    ->dateTime('d M Y, H:i:s WIB')
+                                    ->icon('heroicon-m-clock'),
+
+                                Infolists\Components\TextEntry::make('ip_address')
+                                    ->label('IP Address')
+                                    ->icon('heroicon-m-globe-alt')
+                                    ->copyable()
+                                    ->copyMessage('IP address disalin!'),
+
+                                Infolists\Components\TextEntry::make('user.name')
                                     ->label('Nama User')
                                     ->placeholder('Guest / Tidak Terautentikasi')
-                                    ->disabled(),
+                                    ->icon('heroicon-m-user'),
 
-                                Forms\Components\TextInput::make('user.email')
+                                Infolists\Components\TextEntry::make('user.email')
                                     ->label('Email User')
                                     ->placeholder('-')
-                                    ->disabled(),
+                                    ->icon('heroicon-m-envelope'),
                             ]),
+                    ]),
 
-                        Forms\Components\Textarea::make('description')
-                            ->label('Deskripsi Detail Kejadian')
-                            ->rows(4)
+                Infolists\Components\Section::make('Deskripsi Detail Kejadian Security')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('description')
+                            ->label('')
                             ->columnSpanFull()
-                            ->disabled(),
+                            ->markdown(),
                     ]),
             ]);
     }
