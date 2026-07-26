@@ -25,14 +25,15 @@ class SecurityHeadersMiddleware
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-        // CSP yang mendukung Vite HMR (http & ws di local) serta domain eksternal
+        // CSP yang mendukung Vite HMR (http & ws di local) serta domain eksternal + CSP Violation Reporting
         $csp = "default-src 'self' http: https: data: blob: 'unsafe-inline' 'unsafe-eval'; " .
                "script-src 'self' http: https: 'unsafe-inline' 'unsafe-eval'; " .
                "style-src 'self' http: https: 'unsafe-inline'; " .
                "font-src 'self' http: https: data:; " .
                "connect-src 'self' http: https: ws: wss:; " .
                "img-src 'self' http: https: data: blob:; " .
-               "frame-src 'self' http: https:;";
+               "frame-src 'self' http: https:; " .
+               "report-uri /api/csp-report;";
 
         $response->headers->set('Content-Security-Policy', $csp);
 

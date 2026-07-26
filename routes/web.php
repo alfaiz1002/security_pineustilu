@@ -38,6 +38,10 @@ Route::get('/aktivitas', [AktivitasController::class, 'index'])->name('aktivitas
 Route::view('/pedoman', 'pedoman')->name('pedoman');
 
 Route::view('/morikafe', 'morikafe')->name('morikafe');
+Route::get('/morikafe/menu-pdf', function (\Illuminate\Http\Request $request) {
+    \App\Services\AuditLogService::logMorikafeMenuDownloaded($request->ip());
+    return redirect()->away('https://drive.google.com/file/d/1Dr8EPHERgTZMYIp0581AtYuIdKhyiooD/view');
+})->name('morikafe.menu.pdf');
 
 Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 

@@ -12,9 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Bypass CSRF untuk route verify-otp dan Midtrans notification
+        // Bypass CSRF untuk route verify-otp, Midtrans notification, dan CSP report
         $middleware->validateCsrfTokens(except: [
             'api/payment/notification',
+            'api/csp-report',
             'verify-otp',
         ]);
 
@@ -32,6 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Daftarkan middleware SecurityHeadersMiddleware secara global
         $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
+
+        // Daftarkan middleware DetectBotScrapingMiddleware secara global untuk deteksi scraper/bot
+        $middleware->append(\App\Http\Middleware\DetectBotScrapingMiddleware::class);
 
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

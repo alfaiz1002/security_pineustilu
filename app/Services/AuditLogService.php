@@ -161,6 +161,16 @@ class AuditLogService
         self::log('ssrf_attempt', "Terdeteksi percobaan SSRF ke target URL: {$targetUrl}", null, 'CRITICAL');
     }
 
+    public static function logBotScrapingAttempt(string $url, string $userAgent): void
+    {
+        self::log('bot_scraping_attempt', "Terdeteksi percobaan web scraping / bot dari IP pada URL: {$url} (User-Agent: {$userAgent})", null, 'WARNING');
+    }
+
+    public static function logMorikafeMenuDownloaded(string $ip): void
+    {
+        self::log('morikafe_menu_downloaded', "Pengunjung mengakses/mengunduh file PDF Menu Morikafe dari IP: {$ip}", auth()->id(), 'INFO');
+    }
+
     /**
      * Catat ketika webhook notifikasi pembayaran diterima dari Midtrans.
      *

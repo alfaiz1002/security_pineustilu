@@ -10,7 +10,7 @@
                     class="w-full h-[500px] sm:h-[600px] md:h-[720px] lg:h-[820px] xl:h-[900px]" frameborder="0" allow="autoplay; encrypted-media"
                     loading="lazy"></iframe>
 
-                <a href="https://drive.google.com/file/d/1Dr8EPHERgTZMYIp0581AtYuIdKhyiooD/view" target="_blank"
+                <a href="{{ route('morikafe.menu.pdf') }}" target="_blank"
                     rel="noopener"
                     class="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/90 text-[#0b5a3e] hover:bg-white px-2 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm md:text-base lg:text-lg font-medium flex items-center gap-1 sm:gap-2 shadow-md">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
