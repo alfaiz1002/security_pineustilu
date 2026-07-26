@@ -175,7 +175,7 @@ class OTPController extends Controller
         if ($method === 'email') {
             if ($user->email) {
                 try {
-                    Mail::to($user->email)->queue(new OtpMail($otp));
+                    Mail::to($user->email)->send(new OtpMail($otp));
                     Log::info("Resend OTP queued via Email to {$user->email} successfully.");
                     AuditLogService::log('otp_sent', "OTP dikirim ulang via Email ke: {$user->email}", $user->id);
                     return response()->json(['success' => true, 'message' => 'OTP berhasil dikirim ulang ke Email.']);

@@ -83,7 +83,7 @@ class AuthController extends Controller
 
         try {
             if ($otpMethod === 'email') {
-                Mail::to($user->email)->queue(new OtpMail($otp));
+                Mail::to($user->email)->send(new OtpMail($otp));
                 Log::info("OTP queued via Email to: {$user->email}");
                 AuditLogService::log('otp_sent', "OTP registrasi dikirim via Email ke: {$user->email}", $user->id);
             } else {
@@ -156,7 +156,7 @@ class AuthController extends Controller
 
         try {
             if ($request->otp_method === 'email') {
-                Mail::to($user->email)->queue(new OtpMail($otp));
+                Mail::to($user->email)->send(new OtpMail($otp));
                 Log::info("OTP queued via Email to: {$user->email}");
                 AuditLogService::log('otp_sent', "OTP login dikirim via Email ke: {$user->email}", $user->id);
             } else {
