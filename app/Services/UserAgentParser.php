@@ -76,6 +76,9 @@ class UserAgentParser
         if (str_starts_with($ip, '87.50') || str_starts_with($ip, '185.125') || str_starts_with($ip, '194.255')) {
             return ['code' => 'dk', 'location' => 'Kopenhagen, Denmark 🇩🇰'];
         }
+        if (str_starts_with($ip, '51.175') || str_starts_with($ip, '193.212') || str_starts_with($ip, '84.208') || str_starts_with($ip, '151.236')) {
+            return ['code' => 'no', 'location' => 'Oslo, Norwegia 🇳🇴'];
+        }
         if (str_starts_with($ip, '128.199') || str_starts_with($ip, '139.59') || str_starts_with($ip, '103.28')) {
             return ['code' => 'sg', 'location' => 'Singapura 🇸🇬'];
         }
