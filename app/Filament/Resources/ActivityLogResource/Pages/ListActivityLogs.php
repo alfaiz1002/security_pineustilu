@@ -17,7 +17,34 @@ class ListActivityLogs extends ListRecords
      */
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            \Filament\Actions\Action::make('prune_logs')
+                ->label('🧹 Bersihkan Log Lama (>90 Hari)')
+                ->icon('heroicon-m-trash')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Pembersihan Log Aktivitas (Log Retention Policy)')
+                ->modalDescription('Apakah Anda yakin ingin membersihkan log aktivitas keamanan yang berusia lebih dari 90 hari? Tindakan ini aman dan bertujuan menghemat penyimpanan basis data MySQL.')
+                ->action(function () {
+                    $cutoffDate = now()->subDays(90);
+                    $count = \App\Models\ActivityLog::where('created_at', '<', $cutoffDate)->delete();
+
+                    if ($count > 0) {
+                        \App\Services\AuditLogService::log(
+                            'manual_log_pruned',
+                            "Super Admin melakukan pembersihan manual {$count} log aktivitas lama (> 90 hari).",
+                            auth()->id(),
+                            'INFO'
+                        );
+                    }
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Pembersihan Berhasil')
+                        ->body("Berhasil membersihkan {$count} log aktivitas lama yang berusia lebih dari 90 hari.")
+                        ->success()
+                        ->send();
+                }),
+        ];
     }
 
     /**
