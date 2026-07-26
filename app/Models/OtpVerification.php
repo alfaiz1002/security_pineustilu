@@ -19,6 +19,7 @@ class OtpVerification extends Model
 
     protected $casts = [
         'expired_at' => 'datetime',
+        'otp_hash' => 'encrypted',
     ];
 
     /**
