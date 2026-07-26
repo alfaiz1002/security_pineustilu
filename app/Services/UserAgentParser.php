@@ -69,6 +69,26 @@ class UserAgentParser
             return "{$ip} (Moskow, Rusia 🇷🇺)";
         }
 
+        if (str_starts_with($ip, '80.58') || str_starts_with($ip, '83.32') || str_starts_with($ip, '212.170')) {
+            return "{$ip} (Madrid, Spanyol 🇪🇸)";
+        }
+
+        if (str_starts_with($ip, '87.50') || str_starts_with($ip, '185.125') || str_starts_with($ip, '194.255')) {
+            return "{$ip} (Kopenhagen, Denmark 🇩🇰)";
+        }
+
+        if (str_starts_with($ip, '128.199') || str_starts_with($ip, '139.59') || str_starts_with($ip, '103.28')) {
+            return "{$ip} (Singapura 🇸🇬)";
+        }
+
+        if (str_starts_with($ip, '133.') || str_starts_with($ip, '210.140')) {
+            return "{$ip} (Tokyo, Jepang 🇯🇵)";
+        }
+
+        if (str_starts_with($ip, '82.132') || str_starts_with($ip, '51.140')) {
+            return "{$ip} (London, Inggris 🇬🇧)";
+        }
+
         if (str_starts_with($ip, '103.') || str_starts_with($ip, '110.') || str_starts_with($ip, '180.') || str_starts_with($ip, '36.')) {
             return "{$ip} (Indonesia 🇮🇩)";
         }
