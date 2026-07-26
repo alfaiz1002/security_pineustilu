@@ -351,6 +351,13 @@ class ActivityLogResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->label('Lihat'),
+
+                Tables\Actions\Action::make('pdf_single')
+                    ->label('PDF Forensik')
+                    ->icon('heroicon-m-document-text')
+                    ->color('danger')
+                    ->url(fn (ActivityLog $record): string => route('admin.audit-log.single-pdf', $record->id))
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([])
             ->paginated([25, 50, 100]);

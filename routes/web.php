@@ -224,6 +224,18 @@ Route::get('/admin/audit-log/export-pdf', function () {
     ));
 })->name('admin.audit-log.export-pdf');
 
+// Route untuk Cetak Laporan Detail Insiden Spesifik 1 Kejadian (PDF)
+Route::get('/admin/audit-log/{id}/pdf', function ($id) {
+    if (!Auth::check() || !Auth::user()->hasRole('super-admin')) {
+        abort(403, 'Akses ditolak. Hanya Super Admin Keamanan yang berhak mencetak Laporan Forensik.');
+    }
+
+    $log = \App\Models\ActivityLog::with('user')->findOrFail($id);
+    $reportHash = strtoupper(substr(hash('sha256', $log->created_at->toIso8601String() . 'INCIDENT_' . $log->id), 0, 16));
+
+    return view('admin.single-incident-pdf', compact('log', 'reportHash'));
+})->name('admin.audit-log.single-pdf');
+
 
 
 
