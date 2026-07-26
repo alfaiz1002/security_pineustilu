@@ -21,7 +21,7 @@ class ListActivityLogs extends ListRecords
     }
 
     /**
-     * Tab Filter Cepat Ancaman Keamanan (Quick Threat Tabs).
+     * Tab Filter Bersih Berdasarkan Severity (Tanpa Overlap).
      */
     public function getTabs(): array
     {
@@ -30,12 +30,6 @@ class ListActivityLogs extends ListRecords
                 ->icon('heroicon-m-queue-list')
                 ->badge(ActivityLog::count())
                 ->badgeColor('gray'),
-
-            'threats' => Tab::make('Hanya Ancaman / Serangan 🛡️')
-                ->icon('heroicon-m-shield-exclamation')
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('severity', ['CRITICAL', 'WARNING']))
-                ->badge(ActivityLog::whereIn('severity', ['CRITICAL', 'WARNING'])->count())
-                ->badgeColor('danger'),
 
             'critical' => Tab::make('Serangan Kritis 🔴')
                 ->icon('heroicon-m-exclamation-triangle')
