@@ -34,22 +34,30 @@ class BookingResource extends Resource
                     ->relationship('user', 'name')
                     ->searchable()
                     ->preload()
-                    ->label('User'),
+                    ->label('User')
+                    ->disabled()
+                    ->dehydrated(false),
                 Forms\Components\Select::make('booking_type')
                     ->options([
                         'glamping' => 'Glamping',
                         'outbound' => 'Outbound',
                     ])
                     ->required()
-                    ->label('Booking Type'),
+                    ->label('Booking Type')
+                    ->disabled()
+                    ->dehydrated(false),
                 Forms\Components\DatePicker::make('booking_date')
                     ->required()
-                    ->label('Booking Date'),
+                    ->label('Booking Date')
+                    ->disabled()
+                    ->dehydrated(false),
                 Forms\Components\TextInput::make('token_code')
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true)
-                    ->label('Token Code'),
+                    ->label('Token Code')
+                    ->disabled()
+                    ->dehydrated(false),
                 Forms\Components\Select::make('status')
                     ->options(BookingStatus::options())
                     ->required()
@@ -57,16 +65,22 @@ class BookingResource extends Resource
                 Forms\Components\TextInput::make('guest_name')
                     ->required()
                     ->maxLength(255)
-                    ->label('Guest Name'),
+                    ->label('Guest Name')
+                    ->disabled()
+                    ->dehydrated(false),
                 Forms\Components\TextInput::make('guest_phone')
                     ->required()
                     ->maxLength(255)
-                    ->label('Guest Phone'),
+                    ->label('Guest Phone')
+                    ->disabled()
+                    ->dehydrated(false),
                 Forms\Components\TextInput::make('guest_email')
                     ->email()
                     ->required()
                     ->maxLength(255)
-                    ->label('Guest Email'),
+                    ->label('Guest Email')
+                    ->disabled()
+                    ->dehydrated(false),
             ]);
     }
 

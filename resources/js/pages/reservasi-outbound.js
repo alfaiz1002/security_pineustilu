@@ -53,6 +53,47 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
     }
 
+    // --- Inline validation helpers ---
+    function setOutFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        field.classList.add('!border-red-400');
+        let errEl = document.getElementById(fieldId + '_error');
+        if (!errEl) {
+            errEl = document.createElement('p');
+            errEl.id = fieldId + '_error';
+            errEl.className = 'text-xs text-red-500 mt-1 font-medium';
+            field.parentNode.insertBefore(errEl, field.nextSibling);
+        }
+        errEl.textContent = message;
+        errEl.classList.remove('hidden');
+    }
+
+    function clearOutFieldError(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) field.classList.remove('!border-red-400');
+        const errEl = document.getElementById(fieldId + '_error');
+        if (errEl) errEl.classList.add('hidden');
+    }
+
+    function setOutFormMessage(message) {
+        let msgEl = document.getElementById('outFormMessage');
+        if (!msgEl) {
+            const form = document.getElementById('outReservasiForm');
+            msgEl = document.createElement('p');
+            msgEl.id = 'outFormMessage';
+            msgEl.className = 'text-sm text-red-600 font-semibold bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 mt-2';
+            if (form) form.parentNode.insertBefore(msgEl, form);
+        }
+        if (!message) {
+            msgEl.classList.add('hidden');
+            return;
+        }
+        msgEl.textContent = message;
+        msgEl.classList.remove('hidden');
+        msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     function setKnobTo(btn) {
         if (!track || !knob || !btn) return;
         const tRect = track.getBoundingClientRect();
@@ -594,6 +635,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (checkinInput) checkinInput.addEventListener('change', syncDateInputs);
 
+    // Auto-clear error per-field saat user mulai mengisi
+    ['outName', 'outEmail', 'outPhone', 'outCheckin'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => clearOutFieldError(id));
+        el.addEventListener('change', () => clearOutFieldError(id));
+    });
+
     // form validation
     const form = document.getElementById('outReservasiForm');
     if (form) {
@@ -606,59 +655,67 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = document.getElementById('outEmail');
             const phone = document.getElementById('outPhone');
             const outboundIdInput = document.getElementById('selectedOutboundId');
+            let hasError = false;
 
             // Validate outbound_id
             if (!outboundIdInput?.value) {
                 e.preventDefault();
-                alert('Please select an outbound activity.');
+                setOutFormMessage('Harap pilih aktivitas outbound terlebih dahulu.');
                 return;
             }
 
             if (!name?.value.trim()) {
                 e.preventDefault();
-                alert('Please enter your full name.');
-                name?.focus();
-                return;
+                setOutFieldError('outName', 'Nama lengkap wajib diisi.');
+                hasError = true;
+            } else {
+                clearOutFieldError('outName');
             }
 
-            if (!email?.value.trim()) {
+            const emailVal = email?.value.trim() ?? '';
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailVal) {
                 e.preventDefault();
-                alert('Please enter your email.');
-                email?.focus();
-                return;
+                setOutFieldError('outEmail', 'Email wajib diisi.');
+                hasError = true;
+            } else if (!emailPattern.test(emailVal)) {
+                e.preventDefault();
+                setOutFieldError('outEmail', 'Format email tidak valid.');
+                hasError = true;
+            } else {
+                clearOutFieldError('outEmail');
             }
 
             if (!phone?.value.trim()) {
                 e.preventDefault();
-                alert('Please enter your phone number.');
-                phone?.focus();
-                return;
+                setOutFieldError('outPhone', 'Nomor telepon wajib diisi.');
+                hasError = true;
+            } else {
+                clearOutFieldError('outPhone');
             }
 
             if (!checkinInput?.value) {
                 e.preventDefault();
-                alert('Please select an activity date.');
-                checkinInput?.focus();
+                setOutFieldError('outCheckin', 'Tanggal aktivitas wajib dipilih.');
+                hasError = true;
+            } else {
+                clearOutFieldError('outCheckin');
+            }
+
+            if (hasError) {
+                setOutFormMessage('Harap lengkapi semua data yang diperlukan.');
                 return;
             }
 
             if (agree && !agree.checked) {
                 e.preventDefault();
-                alert('Please agree to the terms & conditions before proceeding.');
+                setOutFormMessage('Harap setujui syarat & ketentuan sebelum melanjutkan.');
                 agree.focus();
                 return;
             }
 
-            // Form is valid, let it submit normally
-            console.log('Form submitted with data:', {
-                outbound_id: outboundIdInput?.value,
-                variant_id: selectedVariantId?.value,
-                activity_date: checkinInput?.value,
-                guest_count: outGuestCount?.value,
-                name: name?.value,
-                email: email?.value,
-                phone: phone?.value,
-            });
+            // Form valid — clear messages & submit
+            setOutFormMessage('');
         });
     }
 

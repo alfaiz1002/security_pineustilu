@@ -12,9 +12,7 @@ class DetailPesanan {
     bookingToken = null;
     snapLoaded = false;
 
-    /**
-     * Initialize the page
-     */
+
     init() {
         this.updateUrl = document.body.dataset.updateStatusUrl;
         this.csrfToken = qs('meta[name="csrf-token"]')?.content;
@@ -27,9 +25,6 @@ class DetailPesanan {
         this.bindEvents();
     }
 
-    /**
-     * Bind event listeners
-     */
     bindEvents() {
         const proceedBtn = qs('[data-action="proceed-to-payment"]');
         if (proceedBtn) {
@@ -41,16 +36,12 @@ class DetailPesanan {
             payBtn.addEventListener('click', () => this.completePayment());
         }
 
-        // Copy booking code functionality
         const copyBtn = qs('#copyCodeBtn');
         if (copyBtn) {
             copyBtn.addEventListener('click', () => this.copyBookingCode());
         }
     }
 
-    /**
-     * Copy booking code to clipboard
-     */
     copyBookingCode() {
         const codeEl = qs('#bookingCode');
         if (!codeEl) return;
@@ -58,7 +49,7 @@ class DetailPesanan {
         const code = codeEl.textContent.trim();
 
         navigator.clipboard.writeText(code).then(() => {
-            // Show success feedback
+
             const copyBtn = qs('#copyCodeBtn');
             const originalHtml = copyBtn.innerHTML;
             copyBtn.innerHTML = `
@@ -71,7 +62,7 @@ class DetailPesanan {
                 copyBtn.innerHTML = originalHtml;
             }, 2000);
         }).catch(err => {
-            // Fallback for older browsers
+
             const textArea = document.createElement('textarea');
             textArea.value = code;
             textArea.style.position = 'fixed';
@@ -127,17 +118,23 @@ class DetailPesanan {
         this.updateBookingStatus('pembayaran');
     }
 
-    /**
-     * Complete payment - Initialize Midtrans Snap payment
-     */
     completePayment() {
         const modal = qs('#snapPaymentModal');
         if (!modal) return;
 
-        // Show modal
+        // Show modal (loading spinner) briefly before Midtrans popup appears
         modal.classList.remove('hidden');
 
-        // Fetch snap token from backend
+        // Hide floating WhatsApp button so it doesn't block clicks
+        const floatingWA = document.getElementById('floatingWhatsApp');
+        if (floatingWA) {
+            floatingWA.style.opacity = '0';
+            floatingWA.style.pointerEvents = 'none';
+        }
+
+        // Selalu fetch token dari backend.
+        // Backend akan me-return token yang sudah di-cache di DB (tidak hit Midtrans API lagi)
+        // sehingga aman dipanggil berulang kali.
         this.fetchSnapToken();
     }
 
@@ -158,6 +155,13 @@ class DetailPesanan {
                     'X-Requested-With': 'XMLHttpRequest',
                 }
             });
+
+            // Handle non-JSON responses gracefully
+            const contentType = response.headers.get('content-type') ?? '';
+            if (!contentType.includes('application/json')) {
+                this.showSnapError('Failed to load payment gateway. Please try again.');
+                return;
+            }
 
             const data = await response.json();
 
@@ -197,25 +201,16 @@ class DetailPesanan {
     }
 
     /**
-     * Display Snap payment embedded in modal
+     * Display Snap payment popup natively
      */
     displaySnapPayment(snapToken) {
-        const loadingEl = qs('#snapLoading');
-        const containerEl = qs('#snap-container');
-        const errorEl = qs('#snapError');
+        // Hide our custom modal entirely and use Midtrans' native popup which works perfectly on mobile
+        const modal = qs('#snapPaymentModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
 
-        if (!containerEl) return;
-
-        // Hide loading and error states
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (errorEl) errorEl.classList.add('hidden');
-
-        // Show container
-        containerEl.style.display = 'block';
-
-        // Use embedded mode (better for modal)
-        window.snap.embed(snapToken, {
-            embedId: 'snap-container',
+        window.snap.pay(snapToken, {
             onSuccess: (result) => this.onPaymentSuccess(result),
             onPending: (result) => this.onPaymentPending(result),
             onError: (result) => this.onPaymentError(result),
@@ -224,7 +219,6 @@ class DetailPesanan {
 
         this.snapLoaded = true;
     }
-
     /**
      * Handle successful payment
      */
@@ -258,22 +252,48 @@ class DetailPesanan {
     }
 
     /**
-     * Handle payment close
+     * Handle payment close (user menutup popup Snap tanpa menyelesaikan)
      */
     onPaymentClose() {
         console.log('Payment modal closed by user');
-        // User closed the payment modal without completing
-        // Don't update booking status
+        
+        // Restore floating WhatsApp button visibility
+        const floatingWA = document.getElementById('floatingWhatsApp');
+        if (floatingWA) {
+            floatingWA.style.opacity = '';
+            floatingWA.style.pointerEvents = '';
+        }
+        
+        // Do not reset state so the user can continue payment if they reopen it
     }
 
-    /**
-     * Close Snap payment modal
-     */
     closeSnapModal() {
         const modal = qs('#snapPaymentModal');
         if (modal) {
             modal.classList.add('hidden');
         }
+        // Reset semua state modal agar fresh saat dibuka kembali
+        this.resetSnapModal();
+
+        // Restore floating WhatsApp button visibility
+        const floatingWA = document.getElementById('floatingWhatsApp');
+        if (floatingWA) {
+            floatingWA.style.opacity = '';
+            floatingWA.style.pointerEvents = '';
+        }
+    }
+
+    /**
+     * Reset semua UI state modal ke kondisi awal (loading).
+     */
+    resetSnapModal() {
+        const loadingEl = qs('#snapLoading');
+        const errorEl = qs('#snapError');
+        const errorMessageEl = qs('#snapErrorMessage');
+
+        if (loadingEl) loadingEl.style.display = '';
+        if (errorEl) errorEl.classList.add('hidden');
+        if (errorMessageEl) errorMessageEl.textContent = '';
     }
 
     /**

@@ -12,22 +12,17 @@ use Illuminate\Support\Facades\Auth;
 
 class FilamentAdminAuthenticate extends Middleware
 {
-    /**
-     * Handle an incoming request.
-     */
+
     public function handle($request, Closure $next, ...$guards)
     {
         $guard = $guards[0] ?? null;
 
-        // Check if user is authenticated
         if (!Auth::guard($guard)->check()) {
-            // Redirect to existing login page with intended URL
-            return redirect()->guest(route('login'));
+            return redirect()->route('home');
         }
 
         $user = Auth::guard($guard)->user();
 
-        // Check if user can access the Filament panel
         if ($user instanceof FilamentUser) {
             if (!$user->canAccessPanel(Filament::getCurrentPanel())) {
                 AuditLogService::logUnauthorizedAccess($request->url(), $user->id);
@@ -38,11 +33,9 @@ class FilamentAdminAuthenticate extends Middleware
         return $next($request);
     }
 
-    /**
-     * Get the path the user should be redirected to when they are not authenticated.
-     */
+
     protected function redirectTo(Request $request): ?string
     {
-        return $request->expectsJson() ? null : route('login');
+        return $request->expectsJson() ? null : route('home');
     }
 }

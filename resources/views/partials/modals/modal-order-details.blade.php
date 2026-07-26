@@ -4,15 +4,15 @@
     <div class="bg-gradient-to-br from-white to-gray-50 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl border-2 border-gray-100">
         <!-- Modal Header -->
         <div class="sticky top-0 bg-white border-b-2 border-gray-100 p-6 md:p-8 flex justify-between items-center z-10 shadow-sm">
-            <div class="flex items-center gap-4">
-                <div class="bg-gradient-to-br from-[#017249] to-[#015a3a] p-3 rounded-2xl shadow-lg">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-[#017249] to-[#015a3a] p-2.5 rounded-2xl shadow-lg flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
                 </div>
                 <div>
-                    <h3 id="orderModalTitle" class="text-2xl md:text-3xl font-bold text-gray-800" style="font-family: 'Bizon', sans-serif;">Order Details</h3>
-                    <p class="text-gray-500 text-sm mt-1" id="orderModalSubtitle">Complete information about your booking</p>
+                    <h3 id="orderModalTitle" class="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800" style="font-family: 'Bizon', sans-serif;">Order Details</h3>
+                    <p class="text-gray-500 text-xs sm:text-sm mt-0.5" id="orderModalSubtitle">Complete information about your booking</p>
                 </div>
             </div>
             <button type="button" id="closeOrderDetailsBtn"
@@ -116,7 +116,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                 </svg>
                             </div>
-                            <span class="text-[10px] sm:text-xs font-semibold text-center text-gray-600"><span class="hidden sm:inline">Com</span>pleted</span>
+                            <span class="text-[10px] sm:text-xs font-semibold text-center text-gray-600">Completed</span>
                         </div>
                     </div>
                 </div>
@@ -137,21 +137,21 @@
                             <span class="text-[#017249]">Guest Details</span>
                         </h4>
                         <div class="space-y-3 text-sm">
-                            <div class="flex justify-between">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="font-semibold text-gray-600">Full Name</span>
-                                <span class="text-gray-900 font-medium" id="guestName">-</span>
+                                <span class="text-gray-900 font-medium sm:text-right break-words" id="guestName">-</span>
                             </div>
-                            <div class="flex justify-between">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="font-semibold text-gray-600">Phone</span>
-                                <span class="text-gray-900 font-medium" id="guestPhone">-</span>
+                                <span class="text-gray-900 font-medium sm:text-right break-all" id="guestPhone">-</span>
                             </div>
-                            <div class="flex justify-between">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="font-semibold text-gray-600">Email</span>
-                                <span class="text-gray-900 font-medium text-right break-all" id="guestEmail">-</span>
+                                <span class="text-gray-900 font-medium sm:text-right break-all" id="guestEmail">-</span>
                             </div>
-                            <div class="flex justify-between">
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                                 <span class="font-semibold text-gray-600">Guests</span>
-                                <span class="text-gray-900 font-medium" id="guestCount">-</span>
+                                <span class="text-gray-900 font-medium sm:text-right" id="guestCount">-</span>
                             </div>
                         </div>
                     </div>
@@ -192,19 +192,19 @@
                         Payment Summary
                     </h4>
                     <div class="space-y-2 text-sm mb-4">
-                        <div class="flex justify-between">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                             <span class="text-white/90">Subtotal</span>
-                            <span class="font-medium" id="paymentSubtotal">Rp. 0</span>
+                            <span class="font-medium sm:text-right" id="paymentSubtotal">Rp. 0</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
                             <span class="text-white/90">Additional Fees</span>
-                            <span class="font-medium" id="paymentFees">Rp. 0</span>
+                            <span class="font-medium sm:text-right" id="paymentFees">Rp. 0</span>
                         </div>
                     </div>
                     <div class="pt-4 border-t border-white/20">
-                        <div class="flex justify-between items-center">
-                            <span class="text-lg font-bold">Total</span>
-                            <span class="text-2xl font-bold" id="paymentTotal">Rp. 0</span>
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4">
+                            <span class="text-base sm:text-lg font-bold">Total</span>
+                            <span class="text-xl sm:text-2xl font-bold" id="paymentTotal">Rp. 0</span>
                         </div>
                     </div>
                 </div>

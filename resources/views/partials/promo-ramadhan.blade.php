@@ -95,14 +95,14 @@
                                         @if($isArrayFormat)
                                             {{-- Regular Area - Array Format --}}
                                             @foreach($prices['ramadan_weekday'] as $index => $priceData)
-                                                <div class="flex justify-between items-center py-2 {{ $index < count($prices['ramadan_weekday']) - 1 ? 'border-b border-amber-400/10' : '' }}">
+                                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 py-2 {{ $index < count($prices['ramadan_weekday']) - 1 ? 'border-b border-amber-400/10' : '' }}">
                                                     <span class="text-white/80">{{ $priceData['unit_names'] }} ({{ $priceData['tent_type'] }})</span>
                                                     <span class="font-bold text-amber-300 text-lg">{{ $formatRupiah($priceData['price']) }}<span class="text-sm font-normal text-white/60">/night</span></span>
                                                 </div>
                                             @endforeach
                                         @else
                                             {{-- Cabin - Single Price Format --}}
-                                            <div class="flex justify-between items-center py-2">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 py-2">
                                                 <span class="text-white/90 font-medium">{{ $areaLabel }}</span>
                                                 <span class="font-bold text-amber-300 text-xl">{{ $formatRupiah($prices['ramadan_weekday']['price']) }}<span class="text-sm font-normal text-white/60">/night</span></span>
                                             </div>
@@ -135,14 +135,14 @@
                                         @if($isArrayFormat || (isset($prices['ramadan_weekend'][0])))
                                             {{-- Regular Area - Array Format --}}
                                             @foreach($prices['ramadan_weekend'] as $index => $priceData)
-                                                <div class="flex justify-between items-center py-2 {{ $index < count($prices['ramadan_weekend']) - 1 ? 'border-b border-yellow-400/10' : '' }}">
+                                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 py-2 {{ $index < count($prices['ramadan_weekend']) - 1 ? 'border-b border-yellow-400/10' : '' }}">
                                                     <span class="text-white/80">{{ $priceData['unit_names'] }} ({{ $priceData['tent_type'] }})</span>
                                                     <span class="font-bold text-yellow-300 text-lg">{{ $formatRupiah($priceData['price']) }}<span class="text-sm font-normal text-white/60">/night</span></span>
                                                 </div>
                                             @endforeach
                                         @else
                                             {{-- Cabin - Single Price Format --}}
-                                            <div class="flex justify-between items-center py-2">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 py-2">
                                                 <span class="text-white/90 font-medium">{{ $areaLabel }}</span>
                                                 <span class="font-bold text-yellow-300 text-xl">{{ $formatRupiah($prices['ramadan_weekend']['price']) }}<span class="text-sm font-normal text-white/60">/night</span></span>
                                             </div>

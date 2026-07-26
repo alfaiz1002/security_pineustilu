@@ -10,6 +10,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Schedule::command('booking:cancel-expired')->everyMinute();
+
 // Pembersihan otomatis record OTP yang expired (Garbage Collection)
 Schedule::command('model:prune')->daily();
 
@@ -30,3 +32,4 @@ Schedule::call(function () {
         );
     }
 })->hourly();
+

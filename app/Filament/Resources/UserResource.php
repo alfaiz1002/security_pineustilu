@@ -28,6 +28,11 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function canEdit($record): bool
+    {
+        return !filled($record?->google_id);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -35,26 +40,39 @@ class UserResource extends Resource
                 Forms\Components\Section::make('User Information')
                     ->description('Basic user information')
                     ->schema([
+                        Forms\Components\Placeholder::make('google_notice')
+                            ->label('')
+                            ->content('⚠️ Data profil ini tidak dapat diubah karena user terdaftar menggunakan Google OAuth.')
+                            ->visible(fn ($record) => filled($record?->google_id))
+                            ->extraAttributes(['class' => 'text-warning-600 font-medium']),
                         Forms\Components\TextInput::make('name')
                             ->label('Nama Lengkap')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->disabled(fn ($record) => filled($record?->google_id))
+                            ->dehydrated(fn ($record) => !filled($record?->google_id)),
                         Forms\Components\TextInput::make('email')
                             ->label('Email')
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true)
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->disabled(fn ($record) => filled($record?->google_id))
+                            ->dehydrated(fn ($record) => !filled($record?->google_id)),
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\TextInput::make('country_code')
                                     ->label('Kode Negara')
                                     ->default('+62')
-                                    ->maxLength(5),
+                                    ->maxLength(5)
+                                    ->disabled(fn ($record) => filled($record?->google_id))
+                                    ->dehydrated(fn ($record) => !filled($record?->google_id)),
                                 Forms\Components\TextInput::make('phone')
                                     ->label('No. Telepon')
                                     ->tel()
-                                    ->maxLength(15),
+                                    ->maxLength(15)
+                                    ->disabled(fn ($record) => filled($record?->google_id))
+                                    ->dehydrated(fn ($record) => !filled($record?->google_id)),
                             ]),
                     ])->columns(2),
 
@@ -69,14 +87,19 @@ class UserResource extends Resource
                             ->required(fn (string $operation): bool => $operation === 'create')
                             ->minLength(8)
                             ->same('password_confirmation')
-                            ->revealable(),
+                            ->revealable()
+                            ->disabled(fn ($record) => filled($record?->google_id)),
                         Forms\Components\TextInput::make('password_confirmation')
                             ->label('Confirm Password')
                             ->password()
                             ->dehydrated(false)
                             ->required(fn (string $operation): bool => $operation === 'create')
-                            ->revealable(),
-                    ])->columns(2),
+                            ->revealable()
+                            ->disabled(fn ($record) => filled($record?->google_id)),
+                    ])->columns(2)
+                    ->description(fn ($record) => filled($record?->google_id)
+                        ? 'Password tidak tersedia untuk akun Google OAuth.'
+                        : 'Password settings'),
 
                 Forms\Components\Section::make('Role & Permissions')
                     ->description('User role settings')

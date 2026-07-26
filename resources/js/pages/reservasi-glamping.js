@@ -377,6 +377,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         el.textContent = message;
         el.classList.remove('hidden');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    // Helper: tampilkan error merah di bawah field dan highlight border
+    const setFieldError = (fieldId, message) => {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        field.classList.add('!border-red-400', 'focus:!border-red-400');
+        let errEl = document.getElementById(fieldId + '_error');
+        if (!errEl) {
+            errEl = document.createElement('p');
+            errEl.id = fieldId + '_error';
+            errEl.className = 'text-xs text-red-500 mt-1 font-medium';
+            field.parentNode.insertBefore(errEl, field.nextSibling);
+        }
+        errEl.textContent = message;
+        errEl.classList.remove('hidden');
+    };
+
+    // Helper: hapus error pada field
+    const clearFieldError = (fieldId) => {
+        const field = document.getElementById(fieldId);
+        if (field) field.classList.remove('!border-red-400', 'focus:!border-red-400');
+        const errEl = document.getElementById(fieldId + '_error');
+        if (errEl) errEl.classList.add('hidden');
     };
 
     // --- flatpickr for checkin/checkout
@@ -1436,7 +1461,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial preview update
     if (typeof globalThis.updatePreview === 'function') globalThis.updatePreview();
 
-    // Ensure required reservation fields are present before submit (client-side hint only)
+    // Auto-clear error per-field saat user mulai mengisi
+    ['name', 'email', 'phone'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => clearFieldError(id));
+    });
+
+    // Validasi form data diri & reservasi sebelum submit
     if (form) {
         form.addEventListener('submit', function (e) {
             const unitId = document.getElementById('selected_unit')?.value;
@@ -1444,12 +1476,59 @@ document.addEventListener('DOMContentLoaded', () => {
             const checkoutVal = document.getElementById('checkout')?.value;
             const countryCodeEl = document.getElementById('country_code');
             const phoneEl = document.getElementById('phone');
+            const nameEl = document.getElementById('name');
+            const emailEl = document.getElementById('email');
             const agree = form?.querySelector('input[name="agree"]');
 
-            if (phoneEl && countryCodeEl) {
+            // --- Validasi data diri (hanya jika field tidak readonly/prefilled oleh auth)
+            let hasContactError = false;
+
+            if (nameEl && !nameEl.readOnly) {
+                if (!nameEl.value.trim()) {
+                    e.preventDefault();
+                    setFieldError('name', 'Nama lengkap wajib diisi.');
+                    hasContactError = true;
+                } else {
+                    clearFieldError('name');
+                }
+            }
+
+            if (emailEl && !emailEl.readOnly) {
+                const emailVal = emailEl.value.trim();
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailVal) {
+                    e.preventDefault();
+                    setFieldError('email', 'Email wajib diisi.');
+                    hasContactError = true;
+                } else if (!emailPattern.test(emailVal)) {
+                    e.preventDefault();
+                    setFieldError('email', 'Format email tidak valid.');
+                    hasContactError = true;
+                } else {
+                    clearFieldError('email');
+                }
+            }
+
+            if (phoneEl && !phoneEl.readOnly) {
+                const rawPhone = String(phoneEl.value || '').trim();
+                if (!rawPhone) {
+                    e.preventDefault();
+                    setFieldError('phone', 'Nomor telepon wajib diisi.');
+                    hasContactError = true;
+                } else {
+                    clearFieldError('phone');
+                    // Format nomor dengan kode negara
+                    if (countryCodeEl && !rawPhone.startsWith('+')) {
+                        const rawCode = String(countryCodeEl.value || '+62').trim();
+                        const phoneDigits = rawPhone.replaceAll(/\D+/g, '').replaceAll(/^0+/, '');
+                        const codeDigits = rawCode.replaceAll(/\D+/g, '') || '62';
+                        phoneEl.value = phoneDigits ? (`+${codeDigits}${phoneDigits}`) : rawPhone;
+                    }
+                }
+            } else if (phoneEl && phoneEl.readOnly && countryCodeEl) {
+                // Readonly (auth user): tetap format nomor
                 const rawPhone = String(phoneEl.value || '').trim();
                 const rawCode = String(countryCodeEl.value || '+62').trim();
-
                 if (rawPhone && !rawPhone.startsWith('+')) {
                     const phoneDigits = rawPhone.replaceAll(/\D+/g, '').replaceAll(/^0+/, '');
                     const codeDigits = rawCode.replaceAll(/\D+/g, '') || '62';
@@ -1457,6 +1536,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            if (hasContactError) {
+                setBookingFlowMessage('Please fill in your personal details before proceeding.');
+                return;
+            }
+
+            // --- Validasi data reservasi
             if (!checkinVal || !checkoutVal) {
                 e.preventDefault();
                 setBookingFlowMessage('Please select check-in date, deck, and check-out date before booking.');

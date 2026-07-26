@@ -23,6 +23,27 @@ class AreaResource extends Resource
 
     protected static ?string $navigationGroup = 'Master Data';
 
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }   
+
+    public static function canEdit($record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -74,17 +95,11 @@ class AreaResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
                 ])
                 ->label('Actions')
                 ->icon('heroicon-m-ellipsis-horizontal'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions([]);
     }
 
     public static function getRelations(): array

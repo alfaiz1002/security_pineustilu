@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Mail\PaymentConfirmationMail;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Services\AuditLogService;
 use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
 class MidtransService
@@ -159,6 +161,10 @@ class MidtransService
         // Get booking details for item details
         $itemDetails = $this->buildItemDetails($booking, $isReschedulePayment, $totalAmount);
 
+        // Dynamically calculate remaining time (1 hour from booking creation)
+        $minutesSinceCreated = $booking->created_at->diffInMinutes(now());
+        $minutesLeft = max(1, 60 - $minutesSinceCreated);
+
         return [
             'transaction_details' => [
                 'order_id' => $orderId,
@@ -176,8 +182,8 @@ class MidtransService
             ],
             'custom_expiry' => [
                 'order_time' => now()->toDateTimeString(),
-                'expiry_duration' => 24,
-                'unit' => 'hours',
+                'expiry_duration' => $minutesLeft,
+                'unit' => 'minutes',
             ],
         ];
     }
@@ -291,6 +297,10 @@ class MidtransService
     {
         $payment = Payment::where('booking_id', $booking->id)->first();
 
+        // Calculate remaining time
+        $minutesSinceCreated = $booking->created_at->diffInMinutes(now());
+        $minutesLeft = max(1, 60 - $minutesSinceCreated);
+
         $paymentData = [
             'booking_id' => $booking->id,
             'order_id' => $orderId,
@@ -298,7 +308,7 @@ class MidtransService
             'gross_amount' => $totalAmount,
             'transaction_status' => 'pending',
             'payment_type' => 'snap',
-            'expired_at' => now()->addHours(24),
+            'expired_at' => now()->addMinutes($minutesLeft),
         ];
 
         if ($payment) {
@@ -357,6 +367,28 @@ class MidtransService
                     $booking->update(['status' => 'berhasil']);
                     // Log payment success
                     AuditLogService::logPaymentSuccess($orderId, (float) $payment->gross_amount, $booking->user_id);
+
+                    // Kirim email konfirmasi pembayaran
+                    $recipientEmail = $booking->guest_email ?? $booking->user?->email;
+                    if ($recipientEmail) {
+                        try {
+                            Mail::to($recipientEmail)->send(new PaymentConfirmationMail($payment->fresh('booking.user')));
+                            AuditLogService::log(
+                                'email_payment_sent',
+                                "Email konfirmasi pembayaran lunas ({$orderId}) berhasil dikirim ke {$recipientEmail}",
+                                $booking->user_id,
+                                'INFO'
+                            );
+                        } catch (\Exception $mailEx) {
+                            Log::warning('Gagal kirim email konfirmasi pembayaran: ' . $mailEx->getMessage());
+                            AuditLogService::log(
+                                'email_payment_failed',
+                                "Gagal kirim email konfirmasi pembayaran ({$orderId}) ke {$recipientEmail}: " . $mailEx->getMessage(),
+                                $booking->user_id,
+                                'WARNING'
+                            );
+                        }
+                    }
                 } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
                     $booking->update(['status' => 'dibatalkan']);
                     // Log payment failed
