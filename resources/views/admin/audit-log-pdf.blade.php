@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -115,10 +116,25 @@
             background-color: #f8fafc;
         }
 
-        .card.critical { border-left: 4px solid #dc2626; background-color: #fef2f2; }
-        .card.warning { border-left: 4px solid #d97706; background-color: #fffbeb; }
-        .card.info { border-left: 4px solid #16a34a; background-color: #f0fdf4; }
-        .card.total { border-left: 4px solid #2563eb; background-color: #eff6ff; }
+        .card.critical {
+            border-left: 4px solid #dc2626;
+            background-color: #fef2f2;
+        }
+
+        .card.warning {
+            border-left: 4px solid #d97706;
+            background-color: #fffbeb;
+        }
+
+        .card.info {
+            border-left: 4px solid #16a34a;
+            background-color: #f0fdf4;
+        }
+
+        .card.total {
+            border-left: 4px solid #2563eb;
+            background-color: #eff6ff;
+        }
 
         .card label {
             font-size: 8.5px;
@@ -174,8 +190,17 @@
             text-transform: uppercase;
         }
 
-        .severity-CRITICAL { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
-        .severity-WARNING { background-color: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
+        .severity-CRITICAL {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        .severity-WARNING {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fbbf24;
+        }
 
         /* Technical Mitigation Section */
         .mitigation-box {
@@ -252,7 +277,7 @@
             font-weight: 700;
             border-radius: 6px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
 
         @media print {
@@ -261,6 +286,7 @@
                 padding: 0;
                 display: block;
             }
+
             .a4-document-landscape {
                 width: 100%;
                 box-shadow: none;
@@ -268,12 +294,14 @@
                 padding: 0;
                 margin: 0;
             }
+
             .action-bar {
                 display: none !important;
             }
         }
     </style>
 </head>
+
 <body>
 
     <!-- Action Bar -->
@@ -293,14 +321,16 @@
             </div>
             <div class="kop-meta">
                 <div>Klasifikasi: <strong>RAHASIA INTERNAL AUDIT</strong></div>
-                <div style="margin-top: 3px;">Kode Referensi Audit: <span class="ref-code">PT-SEC-{{ $reportHash }}</span></div>
+                <div style="margin-top: 3px;">Kode Referensi Audit: <span
+                        class="ref-code">PT-SEC-{{ $reportHash }}</span></div>
             </div>
         </div>
 
         <!-- Title -->
         <div class="doc-title-container">
             <h2>LAPORAN REKAPITULASI AUDIT ANCAMAN KEAMANAN &amp; MITIGASI TEKNIS</h2>
-            <p>Rekapitulasi Barang Bukti Insiden Keamanan Berkatagori Kritis &amp; Peringatan &bull; Diterbitkan Pada {{ now()->setTimezone('Asia/Jakarta')->format('d F Y, H:i:s \W\I\B') }}</p>
+            <p>Rekapitulasi Barang Bukti Insiden Keamanan Berkatagori Kritis &amp; Peringatan &bull; Diterbitkan Pada
+                {{ now()->setTimezone('Asia/Jakarta')->format('d F Y, H:i:s \W\I\B') }}</p>
         </div>
 
         <!-- Summary Grid -->
@@ -351,7 +381,8 @@
                     @endphp
                     <tr>
                         <td style="text-align: center;">{{ $index + 1 }}</td>
-                        <td style="font-weight: 600;">{{ $log->created_at->setTimezone('Asia/Jakarta')->format('d/m/Y H:i:s') }}</td>
+                        <td style="font-weight: 600;">
+                            {{ $log->created_at->setTimezone('Asia/Jakarta')->format('d/m/Y H:i:s') }}</td>
                         <td><strong>{{ ucfirst(str_replace('_', ' ', $log->event)) }}</strong></td>
                         <td>
                             <span class="badge-severity severity-{{ $log->severity }}">
@@ -377,10 +408,15 @@
         <div class="mitigation-box">
             <h4>II. REKOMENDASI ANJURAN MITIGASI TEKNIS &amp; PENCEGAHAN ANCAMAN SIBER</h4>
             <ul>
-                <li><strong>Penanganan Web Scraping:</strong> Aktifkan proteksi throttling IP Rate Limiting (maksimum 30 request/menit) dan tantangan Cloudflare WAF JS Challenge.</li>
-                <li><strong>Pencegahan IDOR (Insecure Direct Object References):</strong> Wajibkan pengecekan otorisasi pengguna pada controller `$this->authorize('view', $booking)` dan ganti ID publik dengan UUID v4.</li>
-                <li><strong>Mitigasi Brute Force:</strong> Enforce penguncian akun otomatis setelah 5 kali gagal login dan wajibkan penggunaan 2FA TOTP Authenticator.</li>
-                <li><strong>Pencegahan SQL Injection &amp; XSS:</strong> Gunakan Prepared Statements (`PDO::prepare`) atau Laravel Eloquent ORM secara konsisten serta validasi header CSP.</li>
+                <li><strong>Penanganan Web Scraping:</strong> Aktifkan proteksi throttling IP Rate Limiting (maksimum 30
+                    request/menit) dan tantangan Cloudflare WAF JS Challenge.</li>
+                <li><strong>Pencegahan IDOR (Insecure Direct Object References):</strong> Wajibkan pengecekan otorisasi
+                    pengguna pada controller `$this->authorize('view', $booking)` dan ganti ID publik dengan UUID v4.
+                </li>
+                <li><strong>Mitigasi Brute Force:</strong> Enforce penguncian akun otomatis setelah 5 kali gagal login
+                    dan wajibkan penggunaan 2FA TOTP Authenticator.</li>
+                <li><strong>Pencegahan SQL Injection &amp; XSS:</strong> Gunakan Prepared Statements (`PDO::prepare`)
+                    atau Laravel Eloquent ORM secara konsisten serta validasi header CSP.</li>
             </ul>
         </div>
 
@@ -388,17 +424,19 @@
         <div class="signature-section">
             <div style="font-size: 8.5px; color: #64748b; max-width: 450px;">
                 Dokumen rekapitulasi ini diterbitkan oleh <strong>Tim Auditor Keamanan Siber Pineus Tilu</strong>.<br>
-                Seluruh catatan insiden di atas divalidasi secara sah dan dapat dipergunakan sebagai lampiran laporan resmi audit keamanan sistem informasi.
+                Seluruh catatan insiden di atas divalidasi secara sah dan dapat dipergunakan sebagai lampiran laporan
+                resmi audit keamanan sistem informasi.
             </div>
 
-        <div class="sig-box">
-            <div class="title">Disetujui Oleh Tim Auditor</div>
-            <div class="name">security pineustilu</div>
-            <div class="role">Tim security Pineus tilu</div>
-        </div>
+            <div class="sig-box">
+                <div class="title">Disetujui Oleh Tim Auditor</div>
+                <div class="name">security pineustilu</div>
+                <div class="role">Tim security Pineus tilu</div>
+            </div>
         </div>
 
     </div>
 
 </body>
+
 </html>

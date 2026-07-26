@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -161,8 +162,17 @@
             letter-spacing: 0.3px;
         }
 
-        .severity-CRITICAL { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
-        .severity-WARNING { background-color: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
+        .severity-CRITICAL {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        .severity-WARNING {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fbbf24;
+        }
 
         /* Description / Log Narrative Box */
         .log-box {
@@ -258,7 +268,7 @@
             font-weight: 700;
             border-radius: 6px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -275,6 +285,7 @@
                 padding: 0;
                 display: block;
             }
+
             .a4-document {
                 width: 100%;
                 box-shadow: none;
@@ -282,12 +293,14 @@
                 padding: 0;
                 margin: 0;
             }
+
             .action-bar {
                 display: none !important;
             }
         }
     </style>
 </head>
+
 <body>
 
     <!-- Floating Print / Save Action Bar -->
@@ -307,19 +320,23 @@
             </div>
             <div class="kop-meta">
                 <div>Klasifikasi: <strong>RAHASIA INTERNAL AUDIT</strong></div>
-                <div style="margin-top: 3px;">Nomor Dokumen: <span class="ref-code">AUDIT-SEC/2026/PT/{{ sprintf('%04d', $log->id) }}</span></div>
+                <div style="margin-top: 3px;">Nomor Dokumen: <span
+                        class="ref-code">AUDIT-SEC/2026/PT/{{ sprintf('%04d', $log->id) }}</span></div>
             </div>
         </div>
 
         <!-- Document Title -->
         <div class="doc-title-container">
             <h2>BERKAS EVALUASI INSIDEN KEAMANAN & REKOMENDASI MITIGASI</h2>
-            <p>Laporan Penilaian Teknis Peristiwa Keamanan Sistem Informasi &bull; Referensi Insiden ID #{{ sprintf('%04d', $log->id) }}</p>
+            <p>Laporan Penilaian Teknis Peristiwa Keamanan Sistem Informasi &bull; Referensi Insiden ID
+                #{{ sprintf('%04d', $log->id) }}</p>
         </div>
 
         <!-- Auditor Formal Intro -->
         <div class="intro-paragraph">
-            Laporan ini disusun secara formal berdasarkan temuan instrumen pengawasan keamanan siber pada server web Pineus Tilu. Dokumen ini memuat analisis rincian barang bukti forensik digital, identifikasi perangkat pengakses, serta petunjuk tindakan korektif bagi tim teknis pengelola sistem.
+            Laporan ini disusun secara formal berdasarkan temuan instrumen pengawasan keamanan siber pada server web
+            Pineus Tilu. Dokumen ini memuat analisis rincian barang bukti forensik digital, identifikasi perangkat
+            pengakses, serta petunjuk tindakan korektif bagi tim teknis pengelola sistem.
         </div>
 
         <!-- Section 1: Incident Identity -->
@@ -347,7 +364,8 @@
             </tr>
             <tr>
                 <th>Identitas Pengguna Terkait</th>
-                <td>{{ $log->user ? $log->user->name . ' (' . $log->user->email . ')' : 'Pengunjung Anonim / Tidak Terautentikasi (Guest)' }}</td>
+                <td>{{ $log->user ? $log->user->name . ' (' . $log->user->email . ')' : 'Pengunjung Anonim / Tidak Terautentikasi (Guest)' }}
+                </td>
             </tr>
         </table>
 
@@ -360,7 +378,8 @@
             </tr>
             <tr>
                 <th>Perangkat &amp; Browser Engine</th>
-                <td>{{ \App\Services\UserAgentParser::parse(preg_match('/User-Agent:\s*([^\)]+)/i', $log->description, $m) ? $m[1] : request()->header('User-Agent')) }}</td>
+                <td>{{ \App\Services\UserAgentParser::parse(preg_match('/User-Agent:\s*([^\)]+)/i', $log->description, $m) ? $m[1] : request()->header('User-Agent')) }}
+                </td>
             </tr>
             <tr>
                 <th>Hash Integritas Dokumen</th>
@@ -380,22 +399,33 @@
             <h4>Poin Langkah Tindakan Perbaikan &amp; Pencegahan:</h4>
             <ul>
                 @if(in_array($log->event, ['bot_scraping_attempt', 'unauthorized_access']))
-                    <li><strong>Pembatas Laju Request (Rate Limiting):</strong> Terapkan batasan maksimum 30 request/menit per alamat IP pada endpoint publik untuk menghentikan skrip scraping otomatis.</li>
-                    <li><strong>Perlindungan Web Application Firewall (WAF):</strong> Aktifkan mode proteksi Cloudflare WAF JS Challenge serta masukan subnet IP pengakses ke dalam daftar blokir (IP Blacklist).</li>
+                    <li><strong>Pembatas Laju Request (Rate Limiting):</strong> Terapkan batasan maksimum 30 request/menit
+                        per alamat IP pada endpoint publik untuk menghentikan skrip scraping otomatis.</li>
+                    <li><strong>Perlindungan Web Application Firewall (WAF):</strong> Aktifkan mode proteksi Cloudflare WAF
+                        JS Challenge serta masukan subnet IP pengakses ke dalam daftar blokir (IP Blacklist).</li>
                 @elseif(in_array($log->event, ['idor_attempt']))
-                    <li><strong>Pemeriksaan Otorisasi Sisi Server (Server-Side Authorization):</strong> Wajibkan verifikasi hak akses sebelum mengembalikan data reservasi menggunakan middleware otorisasi `$this->authorize('view', $booking)`.</li>
-                    <li><strong>Migrasi Pengenal Unik (UUID Migration):</strong> Ganti format ID inkremental angka pada parameter URL dengan format UUID v4 untuk mencegah teknik tebak ID (Enumeration Attack).</li>
+                    <li><strong>Pemeriksaan Otorisasi Sisi Server (Server-Side Authorization):</strong> Wajibkan verifikasi
+                        hak akses sebelum mengembalikan data reservasi menggunakan middleware otorisasi
+                        `$this->authorize('view', $booking)`.</li>
+                    <li><strong>Migrasi Pengenal Unik (UUID Migration):</strong> Ganti format ID inkremental angka pada
+                        parameter URL dengan format UUID v4 untuk mencegah teknik tebak ID (Enumeration Attack).</li>
                 @elseif(in_array($log->event, ['brute_force', 'login_failed']))
-                    <li><strong>Kebijakan Penguncian Akun (Account Lockout Policy):</strong> Aktifkan penguncian akun otomatis selama 15 menit apabila terjadi 5 kali kegagalan login berturut-turut.</li>
-                    <li><strong>Otentikasi Dua Faktor (MFA / 2FA):</strong> Wajibkan penggunaan aplikasi OTP Authenticator (TOTP) bagi seluruh pengguna dengan hak akses admin.</li>
+                    <li><strong>Kebijakan Penguncian Akun (Account Lockout Policy):</strong> Aktifkan penguncian akun
+                        otomatis selama 15 menit apabila terjadi 5 kali kegagalan login berturut-turut.</li>
+                    <li><strong>Otentikasi Dua Faktor (MFA / 2FA):</strong> Wajibkan penggunaan aplikasi OTP Authenticator
+                        (TOTP) bagi seluruh pengguna dengan hak akses admin.</li>
                 @elseif(in_array($log->event, ['csp_violation']))
-                    <li><strong>Audit Kebijakan Keamanan Konten (CSP Policy Audit):</strong> Audit seluruh skrip eksternal pihak ketiga dan perketat arahan header CSP `script-src 'self'`.</li>
+                    <li><strong>Audit Kebijakan Keamanan Konten (CSP Policy Audit):</strong> Audit seluruh skrip eksternal
+                        pihak ketiga dan perketat arahan header CSP `script-src 'self'`.</li>
                 @elseif(in_array($log->event, ['sql_injection_attempt']))
-                    <li><strong>Penggunaan Query Terparameter (Prepared Statements):</strong> Pastikan seluruh kueri basis data menggunakan PDO Parameterized Queries atau Laravel Eloquent ORM secara konsisten.</li>
+                    <li><strong>Penggunaan Query Terparameter (Prepared Statements):</strong> Pastikan seluruh kueri basis
+                        data menggunakan PDO Parameterized Queries atau Laravel Eloquent ORM secara konsisten.</li>
                 @else
-                    <li><strong>Pengawasan Kontinyu (Continuous Monitoring):</strong> Lakukan pemantauan catatan log aktivitas secara berkala serta lakukan pembaruan patch keamanan sistem secara rutin.</li>
+                    <li><strong>Pengawasan Kontinyu (Continuous Monitoring):</strong> Lakukan pemantauan catatan log
+                        aktivitas secara berkala serta lakukan pembaruan patch keamanan sistem secara rutin.</li>
                 @endif
-                <li><strong>Integritas Barang Bukti:</strong> Cadangkan catatan bukti forensik digital ini ke dalam repositori penyimpanan terisolasi secara periodik.</li>
+                <li><strong>Integritas Barang Bukti:</strong> Cadangkan catatan bukti forensik digital ini ke dalam
+                    repositori penyimpanan terisolasi secara periodik.</li>
             </ul>
         </div>
 
@@ -403,7 +433,8 @@
         <div class="signature-section">
             <div style="font-size: 9px; color: #64748b; max-width: 380px;">
                 * Berkas evaluasi ini diterbitkan oleh <strong>Tim Auditor Keamanan Siber Pineus Tilu Web</strong>.<br>
-                Seluruh catatan di atas terverifikasi secara sah dan dapat dipergunakan sebagai lampiran laporan resmi audit keamanan sistem informasi.
+                Seluruh catatan di atas terverifikasi secara sah dan dapat dipergunakan sebagai lampiran laporan resmi
+                audit keamanan sistem informasi.
             </div>
 
             <div class="sig-box">
@@ -416,4 +447,5 @@
     </div>
 
 </body>
+
 </html>
