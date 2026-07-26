@@ -303,8 +303,7 @@
         <!-- Kop Surat Resmi Instansi -->
         <div class="kop-surat">
             <div>
-                <div class="kop-brand">Tim Keamanan Siber & Digital Forensik Pineus Tilu</div>
-                <div class="kop-sub">Sistem Informasi Reservasi Wisata &bull; Universitas Telkom / Pineus Tilu Web</div>
+                <div class="kop-brand">Tim Security Pineustilu</div>
             </div>
             <div class="kop-meta">
                 <div>Klasifikasi: <strong>RAHASIA INTERNAL AUDIT</strong></div>
@@ -409,8 +408,8 @@
 
             <div class="sig-box">
                 <div class="title">Disetujui Oleh Tim Auditor</div>
-                <div class="name">Tim Security Capstone Design</div>
-                <div class="role">Tim Keamanan Siber &amp; Forensik Digital</div>
+                <div class="name">security pineustilu</div>
+                <div class="role">Tim security Pineus tilu</div>
             </div>
         </div>
 
