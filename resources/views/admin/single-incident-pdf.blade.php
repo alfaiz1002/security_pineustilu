@@ -87,7 +87,7 @@
             margin: 0;
         }
 
-        /* Intro Paragraph - Clean Text, No Box */
+        /* Intro Paragraph */
         .intro-paragraph {
             font-size: 11px;
             color: #374151;
@@ -146,15 +146,15 @@
             margin-bottom: 18px;
         }
 
-        /* Mitigation List - Clean Bullet Points */
-        .mitigation-list {
+        /* Bullet List */
+        .bullet-list {
             margin: 0;
             padding-left: 20px;
             color: #111827;
             font-size: 11px;
         }
 
-        .mitigation-list li {
+        .bullet-list li {
             margin-bottom: 8px;
             text-align: justify;
         }
@@ -268,7 +268,7 @@
 
         <!-- Intro Paragraph -->
         <div class="intro-paragraph">
-            Laporan ini disusun secara formal berdasarkan temuan instrumen pengawasan keamanan siber pada server web Pineus Tilu. Dokumen ini memuat analisis rincian barang bukti forensik digital, identifikasi perangkat pengakses, serta petunjuk tindakan korektif bagi tim teknis pengelola sistem.
+            Laporan ini disusun secara formal berdasarkan temuan instrumen pengawasan keamanan siber pada server web Pineus Tilu. Dokumen ini memuat analisis rincian barang bukti forensik digital, identifikasi perangkat pengakses, dampak risiko kerugian bisnis, serta petunjuk tindakan korektif bagi tim teknis pengelola sistem.
         </div>
 
         <!-- Section 1: Metadata -->
@@ -319,9 +319,30 @@
             {{ $log->description }}
         </div>
 
-        <!-- Section 4: Mitigation Steps -->
-        <div class="section-header">IV. REKOMENDASI STRATEGI MITIGASI TEKNIS (TECHNICAL REMEDIATION PLAN)</div>
-        <ul class="mitigation-list">
+        <!-- Section 4: Business Impact Assessment -->
+        <div class="section-header">IV. ANALISIS RISIKO DAN POTENSI KERUGIAN BISNIS (BUSINESS IMPACT ASSESSMENT)</div>
+        <ul class="bullet-list">
+            @if(in_array($log->event, ['sql_injection_attempt']))
+                <li><strong>Risiko Kebocoran Basis Data &amp; Data Transaksi:</strong> Kerentanan SQL Injection berpotensi dimanfaatkan peretas untuk mengunduh seluruh basis data reservasi, kredensial pengguna, serta riwayat transaksi keuangan.</li>
+                <li><strong>Potensi Kerugian Finansial &amp; Operasional:</strong> Risiko pembatalan reservasi massal akibat kerusakan data (*Data Corruption*), potensi denda pelanggaran perlindungan data pribadi (UU PDP), serta kehilangan pendapatan harian sewa tenda.</li>
+            @elseif(in_array($log->event, ['idor_attempt']))
+                <li><strong>Pelanggaran Privasi Pengunjung:</strong> Penyerang dapat mengunduh atau mengubah data reservasi dan bukti pembayaran milik pelanggan lain secara ilegal.</li>
+                <li><strong>Risiko Kerusakan Reputasi:</strong> Potensi komplain publik dan gugatan hukum dari pengunjung yang menurunkan tingkat kepercayaan calon wisatawan secara signifikan.</li>
+            @elseif(in_array($log->event, ['bot_scraping_attempt', 'unauthorized_access']))
+                <li><strong>Pencurian Data Strategis Harga &amp; Ketersediaan:</strong> Bot otomatis dapat mencuri data ketersediaan tempat dan pola tarif sewa untuk kepentingan pihak ketiga/kompetitor.</li>
+                <li><strong>Lonjakan Beban Server &amp; Penurunan Layanan:</strong> Tingginya traffic bot scraping menyebabkan server *overload*, memperlambat proses checkout booking pelanggan asli, dan berisiko menyebabkan *downtime*.</li>
+            @elseif(in_array($log->event, ['brute_force', 'login_failed']))
+                <li><strong>Risiko Pengambilalihan Akun Administrator (Account Takeover):</strong> Keberhasilan serangan brute force memungkinkan peretas mengambil alih akun admin, mengubah nomor rekening pembayaran, serta memanipulasi data reservasi.</li>
+            @elseif(in_array($log->event, ['csp_violation']))
+                <li><strong>Risiko Penyusupan Skrip Jahat Pihak Ketiga (XSS):</strong> Kerentanan CSP memungkinkan skrip tidak dikenal mencegat data transaksi sensitif pengunjung saat pengisian formulir booking.</li>
+            @else
+                <li><strong>Risiko Gangguan Keandalan Sistem:</strong> Jika insiden ini tidak ditangani segera, akumulasi celah keamanan dapat dimanfaatkan penyerang untuk melancarkan serangan lanjutan yang lebih kompleks.</li>
+            @endif
+        </ul>
+
+        <!-- Section 5: Mitigation Steps -->
+        <div class="section-header">V. REKOMENDASI STRATEGI MITIGASI TEKNIS (TECHNICAL REMEDIATION PLAN)</div>
+        <ul class="bullet-list">
             @if(in_array($log->event, ['bot_scraping_attempt', 'unauthorized_access']))
                 <li><strong>Pembatas Laju Request (Rate Limiting):</strong> Terapkan batasan maksimum 30 request/menit per alamat IP pada endpoint publik untuk menghentikan skrip scraping otomatis.</li>
                 <li><strong>Perlindungan Web Application Firewall (WAF):</strong> Aktifkan mode proteksi Cloudflare WAF JS Challenge serta masukan subnet IP pengakses ke dalam daftar blokir (IP Blacklist).</li>
@@ -341,7 +362,7 @@
             <li><strong>Integritas Barang Bukti:</strong> Cadangkan catatan bukti forensik digital ini ke dalam repositori penyimpanan terisolasi secara periodik.</li>
         </ul>
 
-        <!-- Section 5: Formal Signatures -->
+        <!-- Section 6: Formal Signatures -->
         <div class="signature-section">
             <div style="font-size: 8.5pt; color: #6b7280; max-width: 380px;">
                 * Berkas evaluasi ini diterbitkan oleh <strong>Tim Auditor Keamanan Siber Pineus Tilu Web</strong>.<br>

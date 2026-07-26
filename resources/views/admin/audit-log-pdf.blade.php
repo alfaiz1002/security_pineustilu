@@ -153,15 +153,15 @@
             margin: 20px 0 10px 0;
         }
 
-        /* Mitigation List */
-        .mitigation-list {
+        /* Bullet List */
+        .bullet-list {
             margin: 0;
             padding-left: 20px;
             color: #111827;
             font-size: 10.5px;
         }
 
-        .mitigation-list li {
+        .bullet-list li {
             margin-bottom: 6px;
             text-align: justify;
         }
@@ -329,9 +329,17 @@
             </tbody>
         </table>
 
+        <!-- Business Impact Assessment -->
+        <div class="section-header">II. ANALISIS RISIKO DAN POTENSI KERUGIAN BISNIS (BUSINESS IMPACT ASSESSMENT)</div>
+        <ul class="bullet-list">
+            <li><strong>Ancaman Kebocoran Data Sensitif:</strong> Kerentanan SQL Injection &amp; IDOR berpotensi mengakibatkan pengambilalihan data reservasi, kredensial pengguna, serta riwayat transaksi keuangan oleh pihak tidak berwenang.</li>
+            <li><strong>Potensi Kerugian Finansial &amp; Sanksi Regulasi:</strong> Pembatalan reservasi massal akibat pemalsuan data, potensi denda kerahasiaan data (UU PDP), serta kehilangan potensi pendapatan harian sewa tenda.</li>
+            <li><strong>Penurunan Performa &amp; Downtime Layanan:</strong> Tingginya traffic bot scraping dan upaya brute force dapat membebankan server (*overload*) sehingga menghambat transaksi booking pengunjung asli.</li>
+        </ul>
+
         <!-- Technical Remediation Plan -->
-        <div class="section-header">II. PROSEDUR OPERASIONAL STANDAR (SOP) ANJURAN MITIGASI TEKNIS</div>
-        <ul class="mitigation-list">
+        <div class="section-header">III. PROSEDUR OPERASIONAL STANDAR (SOP) ANJURAN MITIGASI TEKNIS</div>
+        <ul class="bullet-list">
             <li><strong>Penanganan Web Scraping:</strong> Aktifkan proteksi throttling IP Rate Limiting (maksimum 30 request/menit) dan tantangan Cloudflare WAF JS Challenge.</li>
             <li><strong>Pencegahan IDOR (Insecure Direct Object References):</strong> Wajibkan pengecekan otorisasi pengguna pada controller <code>$this-&gt;authorize('view', $booking)</code> dan ganti ID publik dengan UUID v4.</li>
             <li><strong>Mitigasi Brute Force:</strong> Enforce penguncian akun otomatis setelah 5 kali gagal login dan wajibkan penggunaan 2FA TOTP Authenticator.</li>
