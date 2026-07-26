@@ -3,162 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Forensik Insiden #{{ $log->id }} - Pineus Tilu</title>
+    <title>Laporan Evaluasi Insiden Keamanan #{{ sprintf('%04d', $log->id) }} - Pineus Tilu</title>
     <style>
         @page {
             size: A4 portrait;
             margin: 15mm;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #0f172a;
-            background-color: #ffffff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #1e293b;
+            background-color: #f1f5f9;
             margin: 0;
-            padding: 10px;
-            font-size: 11px;
+            padding: 30px 15px;
+            font-size: 11.5px;
             line-height: 1.5;
+            display: flex;
+            justify-content: center;
         }
 
-        .doc-header {
+        /* Centered Realistic A4 Paper Sheet Preview */
+        .a4-document {
+            width: 210mm;
+            min-height: 297mm;
+            background-color: #ffffff;
+            padding: 22mm 20mm 20mm 20mm;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            border: 1px solid #cbd5e1;
+            position: relative;
+        }
+
+        /* Letterhead / Kop Surat Resmi */
+        .kop-surat {
+            border-bottom: 3px double #0f172a;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 2.5px solid #0f172a;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            align-items: flex-end;
         }
 
-        .company-brand {
-            font-size: 16px;
+        .kop-brand {
+            font-size: 15px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
-        .sub-brand {
+        .kop-sub {
             font-size: 10px;
             color: #475569;
-            font-weight: 600;
-            margin-top: 2px;
+            margin-top: 3px;
         }
 
-        .meta-box {
+        .kop-meta {
             text-align: right;
             font-size: 9.5px;
-            color: #475569;
+            color: #64748b;
         }
 
-        .confidential-tag {
-            background-color: #7f1d1d;
-            color: #ffffff;
-            font-weight: bold;
-            font-size: 8.5px;
-            padding: 2px 6px;
-            border-radius: 2px;
-            text-transform: uppercase;
-        }
-
-        .hash-code {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #f1f5f9;
+        .ref-code {
+            font-family: monospace;
+            background-color: #f8fafc;
             border: 1px solid #cbd5e1;
-            padding: 2px 5px;
-            font-size: 9px;
-            color: #334155;
+            padding: 2px 6px;
             border-radius: 3px;
+            font-size: 9.5px;
+            color: #0f172a;
+            font-weight: 600;
         }
 
-        .section-title {
+        /* Document Header Title */
+        .doc-title-container {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .doc-title-container h2 {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 4px 0;
+        }
+
+        .doc-title-container p {
+            font-size: 10.5px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Auditor Intro Box */
+        .intro-paragraph {
+            background-color: #f8fafc;
+            border-left: 3.5px solid #2563eb;
+            padding: 10px 14px;
+            font-size: 10.5px;
+            color: #334155;
+            margin-bottom: 16px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Section Title */
+        .section-header {
             font-size: 11px;
             font-weight: 800;
             color: #0f172a;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding-bottom: 4px;
+            margin: 16px 0 10px 0;
+        }
+
+        /* Detailed Tables */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 10.5px;
+        }
+
+        .info-table th {
             background-color: #f1f5f9;
-            border-left: 4px solid #1e293b;
-            padding: 6px 10px;
-            margin: 14px 0 8px 0;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-
-        .data-row {
-            margin-bottom: 6px;
-        }
-
-        .data-row label {
-            font-size: 9px;
+            color: #334155;
             font-weight: 700;
-            color: #64748b;
+            text-align: left;
+            padding: 7px 10px;
+            width: 32%;
+            border: 1px solid #cbd5e1;
+            font-size: 10px;
             text-transform: uppercase;
-            display: block;
         }
 
-        .data-row .val {
-            font-size: 11px;
-            font-weight: 600;
+        .info-table td {
+            padding: 7px 10px;
+            border: 1px solid #cbd5e1;
             color: #0f172a;
+            vertical-align: top;
         }
 
-        .badge {
+        /* Badges */
+        .badge-severity {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 2px 8px;
             border-radius: 3px;
             font-size: 9.5px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
-        .badge-CRITICAL { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
-        .badge-WARNING { background-color: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
-        .badge-INFO { background-color: #dcfce7; color: #166534; border: 1px solid #4ade80; }
+        .severity-CRITICAL { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+        .severity-WARNING { background-color: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
 
-        .narrative-box {
+        /* Description / Log Narrative Box */
+        .log-box {
             border: 1px solid #cbd5e1;
             background-color: #fafafa;
             border-radius: 4px;
-            padding: 10px;
+            padding: 12px;
             font-size: 10.5px;
             color: #1e293b;
-            margin-bottom: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.5;
+            margin-bottom: 16px;
         }
 
-        .remediation-box {
+        /* Technical Mitigation Section */
+        .mitigation-box {
             border: 1px solid #94a3b8;
-            border-radius: 4px;
             background-color: #f8fafc;
-            padding: 12px;
+            border-radius: 4px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
         }
 
-        .remediation-box h5 {
-            margin: 0 0 6px 0;
-            font-size: 10.5px;
+        .mitigation-box h4 {
+            margin: 0 0 8px 0;
+            font-size: 11px;
             color: #0f172a;
             text-transform: uppercase;
         }
 
-        .remediation-box ul {
+        .mitigation-box ul {
             margin: 0;
             padding-left: 18px;
             color: #334155;
-            font-size: 10px;
+            font-size: 10.5px;
         }
 
-        .remediation-box li {
-            margin-bottom: 5px;
+        .mitigation-box li {
+            margin-bottom: 6px;
         }
 
-        .footer-signatures {
-            margin-top: 30px;
+        /* Formal Signatures Footer */
+        .signature-section {
+            margin-top: 35px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -167,163 +215,205 @@
 
         .sig-box {
             text-align: center;
-            width: 200px;
+            width: 220px;
         }
 
         .sig-box .title {
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700;
             color: #475569;
             text-transform: uppercase;
-            margin-bottom: 35px;
+            margin-bottom: 45px;
         }
 
         .sig-box .name {
-            font-size: 10px;
-            font-weight: 700;
+            font-size: 11px;
+            font-weight: 800;
             color: #0f172a;
-            border-top: 1px solid #94a3b8;
+            border-top: 1px dotted #94a3b8;
             padding-top: 4px;
         }
 
-        .print-btn-bar {
-            position: fixed;
-            top: 12px;
-            right: 15px;
-            z-index: 9999;
+        .sig-box .role {
+            font-size: 9px;
+            color: #64748b;
         }
 
-        .btn-print {
+        /* Floating Top Action Bar */
+        .action-bar {
+            position: fixed;
+            top: 15px;
+            right: 25px;
+            z-index: 9999;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
             background-color: #0f172a;
             color: #ffffff;
             border: 1px solid #334155;
-            padding: 6px 14px;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 6px;
             cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover {
+            background-color: #1e293b;
         }
 
         @media print {
-            .print-btn-bar { display: none !important; }
-            body { padding: 0; }
+            body {
+                background-color: #ffffff;
+                padding: 0;
+                display: block;
+            }
+            .a4-document {
+                width: 100%;
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                margin: 0;
+            }
+            .action-bar {
+                display: none !important;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="print-btn-bar">
-        <button onclick="window.print()" class="btn-print">Cetak Laporan Insiden ini</button>
+    <!-- Floating Print / Save Action Bar -->
+    <div class="action-bar">
+        <button onclick="window.print()" class="btn-action">
+            🖨️ Cetak / Simpan Laporan PDF
+        </button>
     </div>
 
-    <!-- Header -->
-    <div class="doc-header">
-        <div>
-            <div class="company-brand">Pineus Tilu Cybersecurity Unit</div>
-            <div class="sub-brand">Laporan Hasil Investigasi Insiden Keamanan Spesifik &bull; Referensi ID #{{ $log->id }}</div>
-        </div>
-        <div class="meta-box">
-            <div><span class="confidential-tag">CONFIDENTIAL // INCIDENT REPORT</span></div>
-            <div style="margin-top: 3px;">Tanggal Terbit: <strong>{{ now()->setTimezone('Asia/Jakarta')->format('d F Y, H:i:s \W\I\B') }}</strong></div>
-            <div style="margin-top: 3px;">Hash Insiden: <span class="hash-code">PT-INC-{{ $reportHash }}</span></div>
-        </div>
-    </div>
+    <!-- Centered A4 Paper Sheet Preview Container -->
+    <div class="a4-document">
 
-    <!-- Section I: Incident Metadata -->
-    <div class="section-title">I. IDENTITAS INSIDEN & METADATA BUKTI (INCIDENT METADATA)</div>
-    <div class="grid-2">
-        <div>
-            <div class="data-row">
-                <label>ID Insiden Log</label>
-                <div class="val">#{{ $log->id }}</div>
+        <!-- Kop Surat Resmi Instansi -->
+        <div class="kop-surat">
+            <div>
+                <div class="kop-brand">Tim Keamanan Siber & Digital Forensik Pineus Tilu</div>
+                <div class="kop-sub">Sistem Informasi Reservasi Wisata &bull; Universitas Telkom / Pineus Tilu Web</div>
             </div>
-            <div class="data-row">
-                <label>Waktu Kejadian (WIB)</label>
-                <div class="val">{{ $log->created_at->setTimezone('Asia/Jakarta')->format('d F Y, H:i:s') }} WIB</div>
-            </div>
-            <div class="data-row">
-                <label>Kategori Event</label>
-                <div class="val">{{ ucfirst(str_replace('_', ' ', $log->event)) }}</div>
+            <div class="kop-meta">
+                <div>Klasifikasi: <strong>RAHASIA INTERNAL AUDIT</strong></div>
+                <div style="margin-top: 3px;">Nomor Dokumen: <span class="ref-code">AUDIT-SEC/2026/PT/{{ sprintf('%04d', $log->id) }}</span></div>
             </div>
         </div>
-        <div>
-            <div class="data-row">
-                <label>Tingkat Keparahan (Severity Rating)</label>
-                <div class="val">
-                    <span class="badge badge-{{ $log->severity }}">
+
+        <!-- Document Title -->
+        <div class="doc-title-container">
+            <h2>BERKAS EVALUASI INSIDEN KEAMANAN & REKOMENDASI MITIGASI</h2>
+            <p>Laporan Penilaian Teknis Peristiwa Keamanan Sistem Informasi &bull; Referensi Insiden ID #{{ sprintf('%04d', $log->id) }}</p>
+        </div>
+
+        <!-- Auditor Formal Intro -->
+        <div class="intro-paragraph">
+            Laporan ini disusun secara formal berdasarkan temuan instrumen pengawasan keamanan siber pada server web Pineus Tilu. Dokumen ini memuat analisis rincian barang bukti forensik digital, identifikasi perangkat pengakses, serta petunjuk tindakan korektif bagi tim teknis pengelola sistem.
+        </div>
+
+        <!-- Section 1: Incident Identity -->
+        <div class="section-header">I. IDENTIFIKASI UTAMA INSIDEN (INCIDENT METADATA)</div>
+        <table class="info-table">
+            <tr>
+                <th>ID Referensi Insiden</th>
+                <td><strong>#{{ sprintf('%04d', $log->id) }}</strong></td>
+            </tr>
+            <tr>
+                <th>Waktu Kejadian (WIB)</th>
+                <td>{{ $log->created_at->setTimezone('Asia/Jakarta')->format('d F Y - H:i:s') }} WIB</td>
+            </tr>
+            <tr>
+                <th>Kategori Insiden</th>
+                <td><strong>{{ ucfirst(str_replace('_', ' ', $log->event)) }}</strong></td>
+            </tr>
+            <tr>
+                <th>Tingkat Keparahan (Severity)</th>
+                <td>
+                    <span class="badge-severity severity-{{ $log->severity }}">
                         {{ $log->severity }}
                     </span>
-                </div>
+                </td>
+            </tr>
+            <tr>
+                <th>Identitas Pengguna Terkait</th>
+                <td>{{ $log->user ? $log->user->name . ' (' . $log->user->email . ')' : 'Pengunjung Anonim / Tidak Terautentikasi (Guest)' }}</td>
+            </tr>
+        </table>
+
+        <!-- Section 2: Forensic Environment -->
+        <div class="section-header">II. LINGKUNGAN FORENSIK & REKAM PERANGKAT PENGAKSES</div>
+        <table class="info-table">
+            <tr>
+                <th>Alamat IP &amp; Lokasi Geografis</th>
+                <td>{{ \App\Services\UserAgentParser::formatIp($log->ip_address) }}</td>
+            </tr>
+            <tr>
+                <th>Perangkat &amp; Browser Engine</th>
+                <td>{{ \App\Services\UserAgentParser::parse(preg_match('/User-Agent:\s*([^\)]+)/i', $log->description, $m) ? $m[1] : request()->header('User-Agent')) }}</td>
+            </tr>
+            <tr>
+                <th>Hash Integritas Dokumen</th>
+                <td><span class="ref-code">SHA256: {{ $reportHash }}</span></td>
+            </tr>
+        </table>
+
+        <!-- Section 3: Technical Narrative Log -->
+        <div class="section-header">III. BARANG BUKTI TEKNIS &amp; NARASI PERISTIWA (EVIDENCE NARRATIVE)</div>
+        <div class="log-box">
+            {{ $log->description }}
+        </div>
+
+        <!-- Section 4: Technical Remediation Steps -->
+        <div class="section-header">IV. REKOMENDASI STRATEGI MITIGASI TEKNIS (TECHNICAL REMEDIATION PLAN)</div>
+        <div class="mitigation-box">
+            <h4>Poin Langkah Tindakan Perbaikan &amp; Pencegahan:</h4>
+            <ul>
+                @if(in_array($log->event, ['bot_scraping_attempt', 'unauthorized_access']))
+                    <li><strong>Pembatas Laju Request (Rate Limiting):</strong> Terapkan batasan maksimum 30 request/menit per alamat IP pada endpoint publik untuk menghentikan skrip scraping otomatis.</li>
+                    <li><strong>Perlindungan Web Application Firewall (WAF):</strong> Aktifkan mode proteksi Cloudflare WAF JS Challenge serta masukan subnet IP pengakses ke dalam daftar blokir (IP Blacklist).</li>
+                @elseif(in_array($log->event, ['idor_attempt']))
+                    <li><strong>Pemeriksaan Otorisasi Sisi Server (Server-Side Authorization):</strong> Wajibkan verifikasi hak akses sebelum mengembalikan data reservasi menggunakan middleware otorisasi `$this->authorize('view', $booking)`.</li>
+                    <li><strong>Migrasi Pengenal Unik (UUID Migration):</strong> Ganti format ID inkremental angka pada parameter URL dengan format UUID v4 untuk mencegah teknik tebak ID (Enumeration Attack).</li>
+                @elseif(in_array($log->event, ['brute_force', 'login_failed']))
+                    <li><strong>Kebijakan Penguncian Akun (Account Lockout Policy):</strong> Aktifkan penguncian akun otomatis selama 15 menit apabila terjadi 5 kali kegagalan login berturut-turut.</li>
+                    <li><strong>Otentikasi Dua Faktor (MFA / 2FA):</strong> Wajibkan penggunaan aplikasi OTP Authenticator (TOTP) bagi seluruh pengguna dengan hak akses admin.</li>
+                @elseif(in_array($log->event, ['csp_violation']))
+                    <li><strong>Audit Kebijakan Keamanan Konten (CSP Policy Audit):</strong> Audit seluruh skrip eksternal pihak ketiga dan perketat arahan header CSP `script-src 'self'`.</li>
+                @elseif(in_array($log->event, ['sql_injection_attempt']))
+                    <li><strong>Penggunaan Query Terparameter (Prepared Statements):</strong> Pastikan seluruh kueri basis data menggunakan PDO Parameterized Queries atau Laravel Eloquent ORM secara konsisten.</li>
+                @else
+                    <li><strong>Pengawasan Kontinyu (Continuous Monitoring):</strong> Lakukan pemantauan catatan log aktivitas secara berkala serta lakukan pembaruan patch keamanan sistem secara rutin.</li>
+                @endif
+                <li><strong>Integritas Barang Bukti:</strong> Cadangkan catatan bukti forensik digital ini ke dalam repositori penyimpanan terisolasi secara periodik.</li>
+            </ul>
+        </div>
+
+        <!-- Section 5: Formal Signatures -->
+        <div class="signature-section">
+            <div style="font-size: 9px; color: #64748b; max-width: 380px;">
+                * Berkas evaluasi ini diterbitkan oleh <strong>Tim Auditor Keamanan Siber Pineus Tilu Web</strong>.<br>
+                Seluruh catatan di atas terverifikasi secara sah dan dapat dipergunakan sebagai lampiran laporan resmi audit keamanan sistem informasi.
             </div>
-            <div class="data-row">
-                <label>Identitas User Terkait</label>
-                <div class="val">{{ $log->user ? $log->user->name . ' (' . $log->user->email . ')' : 'Guest / Tidak Terautentikasi (Anonim)' }}</div>
+
+            <div class="sig-box">
+                <div class="title">Disetujui Oleh Tim Auditor</div>
+                <div class="name">Tim Security Capstone Design</div>
+                <div class="role">Tim Keamanan Siber &amp; Forensik Digital</div>
             </div>
         </div>
-    </div>
 
-    <!-- Section II: Geographic & Device Analysis -->
-    <div class="section-title">II. ANALISIS GEOGRAFIK & PERANGKAT PENGAKSES (FORENSIC ENVIRONMENT)</div>
-    <div class="grid-2">
-        <div>
-            <div class="data-row">
-                <label>IP Address & Lokasi Geografis</label>
-                <div class="val">{{ \App\Services\UserAgentParser::formatIp($log->ip_address) }}</div>
-            </div>
-        </div>
-        <div>
-            <div class="data-row">
-                <label>Perangkat & Browser (User-Agent Analysis)</label>
-                <div class="val">
-                    {{ \App\Services\UserAgentParser::parse(preg_match('/User-Agent:\s*([^\)]+)/i', $log->description, $m) ? $m[1] : request()->header('User-Agent')) }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Section III: Forensic Narrative -->
-    <div class="section-title">III. DESKRIPSI TEKNIS KEJADIKAN & BARANG BUKTI (FORENSIC NARRATIVE)</div>
-    <div class="narrative-box">
-        <strong>Detail Narasi Peristiwa:</strong><br>
-        {{ $log->description }}
-    </div>
-
-    <!-- Section IV: Specific Technical Remediation Plan -->
-    <div class="section-title">IV. REKOMENDASI PENCEGAHAN & STRATEGI MITIGASI TEKNIS (REMEDIATION PLAN)</div>
-    <div class="remediation-box">
-        <h5>Langkah Tindakan Perbaikan & Pencegahan Terstruktur:</h5>
-        <ul>
-            @if(in_array($log->event, ['bot_scraping_attempt', 'unauthorized_access']))
-                <li><strong>Enforce Rate Limiting:</strong> Terapkan throttling maksimal 30 request/menit untuk mencegah scraping otomatis.</li>
-                <li><strong>WAF Filter:</strong> Aktifkan JavaScript Challenge Cloudflare WAF dan masukan IP penyerang ke dalam IP Blacklist.</li>
-            @elseif(in_array($log->event, ['idor_attempt']))
-                <li><strong>Strict Server Authorization:</strong> Wajibkan pengecekan hak akses di controller menggunakan `$this->authorize('view', $booking)`.</li>
-                <li><strong>UUID Migration:</strong> Ganti ID inkremental angka di URL dengan UUID v4 untuk mencegah penembakan ID secara sekuensial.</li>
-            @elseif(in_array($log->event, ['brute_force', 'login_failed']))
-                <li><strong>Account Lockout Policy:</strong> Kunci akun sementara setelah 5 kali kegagalan login berturut-turut.</li>
-                <li><strong>Multi-Factor Authentication:</strong> Wajibkan verifikasi TOTP 2FA untuk seluruh akun berhak akses tinggi/admin.</li>
-            @elseif(in_array($log->event, ['csp_violation']))
-                <li><strong>CSP Policy Audit:</strong> Audit skrip eksternal tak dikenal dan perketat arahan `script-src 'self'` pada header CSP.</li>
-            @elseif(in_array($log->event, ['sql_injection_attempt']))
-                <li><strong>Prepared Statements:</strong> Pastikan seluruh query database menggunakan Parameterized Queries PDO atau Eloquent ORM.</li>
-            @else
-                <li><strong>Continuous Audit Logging:</strong> Pertahankan pengawasan audit log secara kontinyu dan perbarui patch keamanan berkala.</li>
-            @endif
-            <li><strong>Audit & Monitoring:</strong> Lakukan pemantauan logs secara berkala dan simpan salinan cadangan bukti forensik.</li>
-        </ul>
-    </div>
-
-    <!-- Signatures Footer -->
-    <div class="footer-signatures">
-        <div style="font-size: 8.5px; color: #64748b; max-width: 350px;">
-            Dokumen ini divalidasi oleh <strong>Sistem Keamanan Siber Pineus Tilu</strong>.<br>
-            Tanda tangan digital ini menyatakan bukti forensik di atas telah terverifikasi secara otentik.
-        </div>
-
-        <div class="sig-box">
-            <div class="title">Disetujui Oleh Auditor Keamanan</div>
-            <div class="name">Tim Security Capstone Design</div>
-        </div>
     </div>
 
 </body>
