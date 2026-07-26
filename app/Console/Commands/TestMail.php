@@ -37,11 +37,23 @@ class TestMail extends Command
             if ($type === 'booking') {
                 $booking = Booking::with('user')->latest()->firstOrFail();
                 Mail::to($email)->send(new BookingConfirmationMail($booking));
+                \App\Services\AuditLogService::log(
+                    'email_booking_sent',
+                    "Email konfirmasi reservasi (Tes: {$booking->token_code}) dikirim ke {$email}",
+                    $booking->user_id,
+                    'INFO'
+                );
                 $this->info("✅ Email konfirmasi reservasi berhasil dikirim!");
                 $this->line("   Token: {$booking->token_code}");
             } elseif ($type === 'payment') {
                 $payment = Payment::with('booking.user')->latest()->firstOrFail();
                 Mail::to($email)->send(new PaymentConfirmationMail($payment));
+                \App\Services\AuditLogService::log(
+                    'email_payment_sent',
+                    "Email konfirmasi pembayaran lunas (Tes: {$payment->order_id}) dikirim ke {$email}",
+                    $payment->booking?->user_id,
+                    'INFO'
+                );
                 $this->info("✅ Email konfirmasi pembayaran berhasil dikirim!");
                 $this->line("   Order ID: {$payment->order_id}");
             } else {
