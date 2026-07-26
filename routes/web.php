@@ -153,7 +153,10 @@ Route::get('/dev/benchmark-otp', function (\Illuminate\Http\Request $request) {
         return response()->json(['error' => 'Unauthorized access. Secret key required.'], 403);
     }
 
-    // Restored to exactly 50 iterations as required by thesis methodology
+    @set_time_limit(300);
+    @ini_set('max_execution_time', '300');
+
+    // Restored to default 50 iterations as required by thesis methodology (can be adjusted via ?iterations=20 for cloud HTTP proxies)
     $iterations = (int) $request->query('iterations', 50);
 
     \Illuminate\Support\Facades\Artisan::call('benchmark:otp', [
