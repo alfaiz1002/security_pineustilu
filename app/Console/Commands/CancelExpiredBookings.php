@@ -35,6 +35,12 @@ class CancelExpiredBookings extends Command
         $count = 0;
         foreach ($expiredBookings as $booking) {
             $booking->update(['status' => BookingStatus::DIBATALKAN]);
+            \App\Services\AuditLogService::log(
+                'booking_expired_cleanup',
+                "Booking {$booking->token_code} dibatalkan otomatis oleh command sistem karena melewati batas pembayaran 1 jam.",
+                $booking->user_id,
+                'INFO'
+            );
             $count++;
         }
 
