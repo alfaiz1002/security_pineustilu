@@ -52,66 +52,95 @@ class UserAgentParser
     }
 
     /**
-     * Format IP address with dynamic global country & flag context.
-     * Supports all 249 country codes worldwide with automatic caching.
+     * Get Geo Details (Country Code & Location Name) for IP Address.
      */
-    public static function formatIp(?string $ip): string
+    public static function getGeoDetails(?string $ip): array
     {
         if (empty($ip) || $ip === '127.0.0.1' || $ip === '::1' || str_starts_with($ip, '192.168.') || str_starts_with($ip, '10.') || str_starts_with($ip, '172.16.')) {
-            return "{$ip} (Localhost / Jaringan Lokal 🏠)";
+            return ['code' => 'LOCAL', 'location' => 'Localhost / Jaringan Lokal 🏠'];
         }
 
         // Fast match for demo prefixes
         if (str_starts_with($ip, '185.220') || str_starts_with($ip, '194.26') || str_starts_with($ip, '46.101')) {
-            return "{$ip} (Frankfurt, Jerman 🇩🇪)";
+            return ['code' => 'de', 'location' => 'Frankfurt, Jerman 🇩🇪'];
         }
         if (str_starts_with($ip, '45.33') || str_starts_with($ip, '104.238') || str_starts_with($ip, '198.51') || str_starts_with($ip, '23.94')) {
-            return "{$ip} (California, Amerika Serikat 🇺🇸)";
+            return ['code' => 'us', 'location' => 'California, Amerika Serikat 🇺🇸'];
         }
         if (str_starts_with($ip, '95.213') || str_starts_with($ip, '188.162') || str_starts_with($ip, '77.88')) {
-            return "{$ip} (Moskow, Rusia 🇷🇺)";
+            return ['code' => 'ru', 'location' => 'Moskow, Rusia 🇷🇺'];
         }
         if (str_starts_with($ip, '80.58') || str_starts_with($ip, '83.32') || str_starts_with($ip, '212.170')) {
-            return "{$ip} (Madrid, Spanyol 🇪🇸)";
+            return ['code' => 'es', 'location' => 'Madrid, Spanyol 🇪🇸'];
         }
         if (str_starts_with($ip, '87.50') || str_starts_with($ip, '185.125') || str_starts_with($ip, '194.255')) {
-            return "{$ip} (Kopenhagen, Denmark 🇩🇰)";
+            return ['code' => 'dk', 'location' => 'Kopenhagen, Denmark 🇩🇰'];
         }
         if (str_starts_with($ip, '128.199') || str_starts_with($ip, '139.59') || str_starts_with($ip, '103.28')) {
-            return "{$ip} (Singapura 🇸🇬)";
+            return ['code' => 'sg', 'location' => 'Singapura 🇸🇬'];
         }
         if (str_starts_with($ip, '133.') || str_starts_with($ip, '210.140')) {
-            return "{$ip} (Tokyo, Jepang 🇯🇵)";
+            return ['code' => 'jp', 'location' => 'Tokyo, Jepang 🇯🇵'];
         }
         if (str_starts_with($ip, '82.132') || str_starts_with($ip, '51.140')) {
-            return "{$ip} (London, Inggris 🇬🇧)";
+            return ['code' => 'gb', 'location' => 'London, Inggris 🇬🇧'];
         }
         if (str_starts_with($ip, '103.') || str_starts_with($ip, '110.') || str_starts_with($ip, '180.') || str_starts_with($ip, '36.')) {
-            return "{$ip} (Indonesia 🇮🇩)";
+            return ['code' => 'id', 'location' => 'Indonesia 🇮🇩'];
         }
 
-        // Automatic Dynamic GeoIP Lookup for any public IP worldwide (cached for 24 hours)
-        return Cache::remember("geoip_format_{$ip}", 86400, function () use ($ip) {
+        // Automatic Dynamic GeoIP Lookup for any public IP worldwide (cached 24 hours)
+        return Cache::remember("geoip_details_{$ip}", 86400, function () use ($ip) {
             try {
                 $response = Http::timeout(2)->get("http://ip-api.com/json/{$ip}?fields=status,country,countryCode,city");
                 if ($response->successful() && $response->json('status') === 'success') {
                     $country = $response->json('country');
-                    $countryCode = $response->json('countryCode');
+                    $countryCode = strtolower($response->json('countryCode'));
                     $city = $response->json('city');
                     $flag = self::countryCodeToEmojiFlag($countryCode);
                     $locationStr = $city ? "{$city}, {$country} {$flag}" : "{$country} {$flag}";
-                    return "{$ip} ({$locationStr})";
+                    return ['code' => $countryCode, 'location' => $locationStr];
                 }
             } catch (\Throwable $e) {
                 Log::warning("GeoIP lookup failed for IP {$ip}: " . $e->getMessage());
             }
 
-            return "{$ip} (Luar Negeri / Overseas 🌍)";
+            return ['code' => '', 'location' => 'Luar Negeri / Overseas 🌍'];
         });
     }
 
     /**
-     * Convert 2-letter ISO Country Code (e.g. US, ID, JP, FR, AU, NL) into Unicode Emoji Flag.
+     * Format IP address with location context.
+     */
+    public static function formatIp(?string $ip): string
+    {
+        $details = self::getGeoDetails($ip);
+        return "{$ip} ({$details['location']})";
+    }
+
+    /**
+     * Format IP address with HTML SVG/PNG Flag image icon for Filament Infolist.
+     */
+    public static function formatIpHtml(?string $ip): string
+    {
+        if (empty($ip) || $ip === '127.0.0.1' || $ip === '::1' || str_starts_with($ip, '192.168.') || str_starts_with($ip, '10.') || str_starts_with($ip, '172.16.')) {
+            return "<span class=\"inline-flex items-center gap-1.5\"><span>🏠</span> <span>{$ip} <span class=\"text-xs text-gray-400 dark:text-gray-500\">(Localhost / Jaringan Lokal)</span></span></span>";
+        }
+
+        $details = self::getGeoDetails($ip);
+        $code = strtolower($details['code'] ?? '');
+        $location = $details['location'];
+
+        if (!empty($code) && strlen($code) === 2 && $code !== 'local') {
+            $flagUrl = "https://flagcdn.com/w40/{$code}.png";
+            return "<span class=\"inline-flex items-center gap-2\"><img src=\"{$flagUrl}\" style=\"width:22px; height:15px; object-fit:cover; border-radius:3px; display:inline-block; vertical-align:middle;\" alt=\"{$code}\"> <span>{$ip} <span class=\"text-xs text-gray-400 dark:text-gray-500\">({$location})</span></span></span>";
+        }
+
+        return "<span>{$ip} <span class=\"text-xs text-gray-400 dark:text-gray-500\">({$location})</span></span>";
+    }
+
+    /**
+     * Convert 2-letter ISO Country Code (e.g. US, ID, JP, FR, AU, NL, ES, DK) into Unicode Emoji Flag.
      */
     public static function countryCodeToEmojiFlag(?string $countryCode): string
     {

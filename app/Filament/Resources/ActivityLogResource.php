@@ -158,8 +158,8 @@ class ActivityLogResource extends Resource
 
                                 Infolists\Components\TextEntry::make('ip_address')
                                     ->label('IP Address & Lokasi')
-                                    ->icon('heroicon-m-globe-alt')
-                                    ->formatStateUsing(fn (?string $state): string => \App\Services\UserAgentParser::formatIp($state))
+                                    ->html()
+                                    ->formatStateUsing(fn (?string $state): string => \App\Services\UserAgentParser::formatIpHtml($state))
                                     ->copyable()
                                     ->copyMessage('IP address disalin!'),
 
