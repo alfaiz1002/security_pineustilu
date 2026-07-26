@@ -48,7 +48,7 @@ class UserAgentParser
     }
 
     /**
-     * Format IP address with location context.
+     * Format IP address with location context (Supports domestic & overseas detection).
      */
     public static function formatIp(?string $ip): string
     {
@@ -56,6 +56,23 @@ class UserAgentParser
             return "{$ip} (Localhost / Jaringan Lokal 🏠)";
         }
 
-        return "{$ip} (Indonesia 🇮🇩)";
+        // Demo / Foreign IP prefix mappings
+        if (str_starts_with($ip, '185.220') || str_starts_with($ip, '194.26') || str_starts_with($ip, '46.101')) {
+            return "{$ip} (Frankfurt, Jerman 🇩🇪)";
+        }
+
+        if (str_starts_with($ip, '45.33') || str_starts_with($ip, '104.238') || str_starts_with($ip, '198.51') || str_starts_with($ip, '23.94')) {
+            return "{$ip} (California, Amerika Serikat 🇺🇸)";
+        }
+
+        if (str_starts_with($ip, '95.213') || str_starts_with($ip, '188.162') || str_starts_with($ip, '77.88')) {
+            return "{$ip} (Moskow, Rusia 🇷🇺)";
+        }
+
+        if (str_starts_with($ip, '103.') || str_starts_with($ip, '110.') || str_starts_with($ip, '180.') || str_starts_with($ip, '36.')) {
+            return "{$ip} (Indonesia 🇮🇩)";
+        }
+
+        return "{$ip} (Luar Negeri / Overseas 🌍)";
     }
 }
