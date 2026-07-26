@@ -17,14 +17,7 @@ class ListActivityLogs extends ListRecords
      */
     protected function getHeaderActions(): array
     {
-        return [
-            \Filament\Actions\Action::make('export_pdf')
-                ->label('Cetak Laporan Forensik (PDF)')
-                ->icon('heroicon-m-document-arrow-down')
-                ->color('danger')
-                ->url(fn (): string => route('admin.audit-log.export-pdf'))
-                ->openUrlInNewTab(),
-        ];
+        return [];
     }
 
     /**
