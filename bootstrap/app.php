@@ -12,14 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-<<<<<<< HEAD
         // Percayai semua proxy (Render menggunakan reverse proxy)
         $middleware->trustProxies(at: '*');
 
-        // Bypass CSRF untuk route verify-otp dan Midtrans notification
-=======
         // Bypass CSRF untuk route verify-otp, Midtrans notification, dan CSP report
->>>>>>> ea27537aaa45784afb5175e959a9e63569342f8d
         $middleware->validateCsrfTokens(except: [
             'api/payment/notification',
             'api/csp-report',
