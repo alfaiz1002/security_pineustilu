@@ -350,16 +350,7 @@ class ActivityLogResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
-                    ->label('Lihat')
-                    ->extraModalFooterActions(fn (ActivityLog $record): array => [
-                        Tables\Actions\Action::make('download_pdf')
-                            ->label('Cetak Laporan Forensik Insiden (PDF)')
-                            ->icon('heroicon-m-document-text')
-                            ->color('danger')
-                            ->visible(fn (ActivityLog $record): bool => in_array($record->severity, ['CRITICAL', 'WARNING']))
-                            ->url(fn (ActivityLog $record): string => route('admin.audit-log.single-pdf', $record->id))
-                            ->openUrlInNewTab(),
-                    ]),
+                    ->label('Lihat'),
             ])
             ->bulkActions([])
             ->paginated([25, 50, 100]);

@@ -1,0 +1,46 @@
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0*   Trying 127.0.0.1:8000...
+* Established connection to 127.0.0.1 (127.0.0.1 port 8000) from 127.0.0.1 port 57363 
+* using HTTP/1.x
+> POST /login HTTP/1.1
+> Host: 127.0.0.1:8000
+> User-Agent: curl/8.18.0
+> Accept: */*
+> Cookie: pineustilu-session=eyJpdiI6IlJCam5aOGxNcmMzSStaZ05BeTVuTUE9PSIsInZhbHVlIjoid253SHZseFBHVzlYVldINzdGUDY4cmdCV0RLZVc4cG9rRXhnTzNVV0llSmZuVGZwMnhmV05ucWVBRElwVUNCOGhMb20wZVNjVXJTL0ZIU2lqQStpL3pnRFVnS05kSFpSYnNFRytqTWxwQUhIcTZmTklBRTF3QXVUMXhzTjVFdFgiLCJtYWMiOiI0ZjAzN2U5NjkyZWI0MDdhNTFhNDM3ZWFlZjhjZWIxNmY2MGVjMTdhZDViMjUwM2M2M2Q2MzdiYWQxNDZmMzU5IiwidGFnIjoiIn0%3D; XSRF-TOKEN=eyJpdiI6InNsUjNWVEorZEdmdnVaWnUzQWN4TVE9PSIsInZhbHVlIjoibkVaeUV6Y3I5VVNqUzdKNGlOUEpnWk10b0RNWW0rR0N1UXVmbW5oYzEwcjhlVEZ6dkh0V2N2SHZsaHpsS09OR2tCdzA4ZVJlQ2o2SXhMN2sybm8yaThiVDVzRmtEajd3cVNtUUxaMnEzTldLd25ZUlU4QXBWdmNWdWpmaSt6SksiLCJtYWMiOiJhODFkYWFkNzllYWVmOGRlYWZmNjYzZTAwMGU5NjNkOWYyZTU4MGMyMTY1YjU0YTRkMTRkMmY0MTk1YTQ5ZjliIiwidGFnIjoiIn0%3D
+> Content-Length: 84
+> Content-Type: application/x-www-form-urlencoded
+> 
+} [84 bytes data]
+* upload completely sent off: 84 bytes
+100     84   0      0 100     84      0     82   00:01   00:01             82100     84   0      0 100     84      0     41   00:02   00:02             41100     84   0      0 100     84      0     27   00:03   00:03             27100     84   0      0 100     84      0     20   00:04   00:04             20< HTTP/1.1 302 Found
+< Host: 127.0.0.1:8000
+< Connection: close
+< X-Powered-By: PHP/8.3.30
+< Cache-Control: no-cache, private
+< Date: Sun, 10 May 2026 06:34:45 GMT
+< Location: http://127.0.0.1:8000/login
+< Content-Type: text/html; charset=utf-8
+< X-RateLimit-Limit: 5
+< X-RateLimit-Remaining: 4
+* Replaced cookie XSRF-TOKEN="eyJpdiI6Ik1FVHg2MDZnZmJPaHcyNEhhbTNod0E9PSIsInZhbHVlIjoiUjJuZDkwdDVFWVByaFBVUW5mRDFoUzcyZkhxQnpVUTlWSEd3ZHFXVCtuMkVLbjVISVd0cHg3TTEwN2pDeDRRL2FLc1pNNjBzQm11WDJZcXc3d3ROalNZaUFVTVVPQXRVTjlTYndJd294T1pEdElkbEFRbzdpZG9NRGlGYkhPQ3UiLCJtYWMiOiI4YTMzZjZkMmQyMjg5ZTEzOTNiMTY5YzZkNjZjYmNjOTVhM2Q4OTk5N2U0OWJmZmM3ZDE1NzIzYmM3MzQ2ODRhIiwidGFnIjoiIn0%3D" for domain 127.0.0.1, path /, expire 1778402085
+< Set-Cookie: XSRF-TOKEN=eyJpdiI6Ik1FVHg2MDZnZmJPaHcyNEhhbTNod0E9PSIsInZhbHVlIjoiUjJuZDkwdDVFWVByaFBVUW5mRDFoUzcyZkhxQnpVUTlWSEd3ZHFXVCtuMkVLbjVISVd0cHg3TTEwN2pDeDRRL2FLc1pNNjBzQm11WDJZcXc3d3ROalNZaUFVTVVPQXRVTjlTYndJd294T1pEdElkbEFRbzdpZG9NRGlGYkhPQ3UiLCJtYWMiOiI4YTMzZjZkMmQyMjg5ZTEzOTNiMTY5YzZkNjZjYmNjOTVhM2Q4OTk5N2U0OWJmZmM3ZDE1NzIzYmM3MzQ2ODRhIiwidGFnIjoiIn0%3D; expires=Sun, 10 May 2026 08:34:45 GMT; Max-Age=7200; path=/; samesite=lax
+* Replaced cookie pineustilu-session="eyJpdiI6IkNQTWtaZ1BIUEZLZUlVM3ZMNGRFN3c9PSIsInZhbHVlIjoidGdTZlVUaU9tRjVzSjlVK01aREQ2bUNlOVJodlNIV3ZPaEtSWHRxaStKbDR5Y1p4Z0M4VjBDSzg4N2pvZGFsenYrU0lBWnovaG56SE1uZkMxa3hkNXI0dW5WQkJ1SzdYbGNxN0Z2UDNpNFpoaFZJQWxVVjRiUXBUU29EYVlJa3AiLCJtYWMiOiIwNGRkMmE0N2ZmMGY4ODJkZDllM2UwMWRiMDVlMWUzZDg5OGU3YzI0ZWVjOTQ1ODZiOWYzNTZlZWJjZTAzZDBmIiwidGFnIjoiIn0%3D" for domain 127.0.0.1, path /, expire 1778402085
+< Set-Cookie: pineustilu-session=eyJpdiI6IkNQTWtaZ1BIUEZLZUlVM3ZMNGRFN3c9PSIsInZhbHVlIjoidGdTZlVUaU9tRjVzSjlVK01aREQ2bUNlOVJodlNIV3ZPaEtSWHRxaStKbDR5Y1p4Z0M4VjBDSzg4N2pvZGFsenYrU0lBWnovaG56SE1uZkMxa3hkNXI0dW5WQkJ1SzdYbGNxN0Z2UDNpNFpoaFZJQWxVVjRiUXBUU29EYVlJa3AiLCJtYWMiOiIwNGRkMmE0N2ZmMGY4ODJkZDllM2UwMWRiMDVlMWUzZDg5OGU3YzI0ZWVjOTQ1ODZiOWYzNTZlZWJjZTAzZDBmIiwidGFnIjoiIn0%3D; expires=Sun, 10 May 2026 08:34:45 GMT; Max-Age=7200; path=/; httponly; samesite=lax
+< 
+{ [354 bytes data]
+100    438   0    354 100     84     73     17   00:04   00:04             20100    438   0    354 100     84     73     17   00:04   00:04             20100    438   0    354 100     84     73     17   00:04   00:04             20
+* shutting down connection #0
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8000/login'" />
+
+        <title>Redirecting to http://127.0.0.1:8000/login</title>
+    </head>
+    <body>
+        Redirecting to <a href="http://127.0.0.1:8000/login">http://127.0.0.1:8000/login</a>.
+    </body>
+</html>

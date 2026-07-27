@@ -200,47 +200,6 @@ Route::get('/dev/benchmark-otp/csv', function (\Illuminate\Http\Request $request
     return response('raw_data.csv has not been generated yet. Please run /dev/benchmark-otp first.', 404);
 });
 
-// Route untuk Cetak Laporan Audit Keamanan & Forensik Digital (PDF) - Khusus CRITICAL & WARNING
-Route::get('/admin/audit-log/export-pdf', function () {
-    if (!Auth::check() || !Auth::user()->hasRole('super-admin')) {
-        abort(403, 'Akses ditolak. Hanya Super Admin Keamanan yang berhak mencetak Laporan Forensik.');
-    }
-
-    $logs = \App\Models\ActivityLog::with('user')->whereIn('severity', ['CRITICAL', 'WARNING'])->latest()->get();
-    $criticalCount = \App\Models\ActivityLog::where('severity', 'CRITICAL')->count();
-    $warningCount = \App\Models\ActivityLog::where('severity', 'WARNING')->count();
-    $infoCount = \App\Models\ActivityLog::where('severity', 'INFO')->count();
-    $totalCount = $logs->count();
-
-    $reportHash = strtoupper(substr(hash('sha256', now()->toIso8601String() . 'PINEUS_TILU_AUDIT'), 0, 16));
-
-    return view('admin.audit-log-pdf', compact(
-        'logs',
-        'criticalCount',
-        'warningCount',
-        'infoCount',
-        'totalCount',
-        'reportHash'
-    ));
-})->name('admin.audit-log.export-pdf');
-
-// Route untuk Cetak Laporan Detail Insiden Spesifik 1 Kejadian (PDF) - Khusus CRITICAL & WARNING
-Route::get('/admin/audit-log/{id}/pdf', function ($id) {
-    if (!Auth::check() || !Auth::user()->hasRole('super-admin')) {
-        abort(403, 'Akses ditolak. Hanya Super Admin Keamanan yang berhak mencetak Laporan Forensik.');
-    }
-
-    $log = \App\Models\ActivityLog::with('user')->findOrFail($id);
-
-    if ($log->severity === 'INFO') {
-        abort(403, 'Cetak Laporan Forensik PDF khusus untuk insiden berkatagori CRITICAL atau WARNING.');
-    }
-
-    $reportHash = strtoupper(substr(hash('sha256', $log->created_at->toIso8601String() . 'INCIDENT_' . $log->id), 0, 16));
-
-    return view('admin.single-incident-pdf', compact('log', 'reportHash'));
-})->name('admin.audit-log.single-pdf');
-
 
 
 
