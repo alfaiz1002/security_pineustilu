@@ -167,7 +167,7 @@ class OTPController extends Controller
         
         OtpVerification::create([
             'phone_number' => $phone,
-            'otp_hash' => Hash::make($otp),
+            'otp_hash' => Hash::driver('bcrypt')->check($inputOtp, $otpRecord->otp_hash),
             'expired_at' => now()->addMinutes(15),
             'attempts' => 0,
         ]);
