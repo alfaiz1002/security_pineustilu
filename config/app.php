@@ -121,8 +121,9 @@ return [
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
-
-        'benchmark_token' => env('a60d5245958d568ace3288b543c7f6f5fbb11ff799f0c184'),
     ],
+
+    'benchmark_token' => env('BENCHMARK_TOKEN'),
+
 
 ];
