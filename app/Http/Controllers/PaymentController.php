@@ -33,7 +33,9 @@ class PaymentController extends Controller
 
             // Check if user is authorized to view this booking
             if ($booking->user_id) {
-                if (!auth()->check() || $booking->user_id !== auth()->id()) {
+                $authUser = auth()->user();
+                $isAuthorized = $authUser && ($booking->user_id === $authUser->id || $authUser->hasRole(['super-admin', 'admin']));
+                if (!$isAuthorized) {
                     AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
                     AuditLogService::logIdorAttempt($bookingToken, auth()->id());
                     return response()->json([
@@ -233,7 +235,9 @@ class PaymentController extends Controller
 
             // Check if user is authorized to view this booking
             if ($booking->user_id) {
-                if (!auth()->check() || $booking->user_id !== auth()->id()) {
+                $authUser = auth()->user();
+                $isAuthorized = $authUser && ($booking->user_id === $authUser->id || $authUser->hasRole(['super-admin', 'admin']));
+                if (!$isAuthorized) {
                     AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
                     AuditLogService::logIdorAttempt($bookingToken, auth()->id());
                     return response()->json([

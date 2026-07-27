@@ -185,6 +185,11 @@ class MidtransService
                 'expiry_duration' => $minutesLeft,
                 'unit' => 'minutes',
             ],
+            'callbacks' => [
+                'finish' => route('reservasi.detail-pesanan', ['token' => $booking->token_code]),
+                'unfinish' => route('reservasi.detail-pesanan', ['token' => $booking->token_code]),
+                'error' => route('reservasi.detail-pesanan', ['token' => $booking->token_code]),
+            ],
         ];
     }
 
@@ -379,7 +384,7 @@ class MidtransService
                                 $booking->user_id,
                                 'INFO'
                             );
-                        } catch (\Exception $mailEx) {
+                        } catch (\Throwable $mailEx) {
                             Log::warning('Gagal kirim email konfirmasi pembayaran: ' . $mailEx->getMessage());
                             AuditLogService::log(
                                 'email_payment_failed',

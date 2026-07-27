@@ -13,6 +13,7 @@ use App\Models\BookingDetail;
 use App\Models\Cancellation;
 use App\Models\Facility;
 use App\Models\Item;
+use App\Models\Payment;
 use App\Models\Price;
 use App\Models\SeasonDate;
 use App\Models\User;
@@ -20,6 +21,7 @@ use App\Mail\BookingConfirmationMail;
 use App\Services\AvailabilityService;
 use App\Services\PricingService;
 use App\Services\AuditLogService;
+use App\Services\MidtransService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -890,13 +892,49 @@ class BookingController extends Controller
     public function showDetailPesanan(Request $request, string $token): \Illuminate\Contracts\View\View
     {
         // Fetch booking with related data for both types
-        $booking = Booking::with(['bookingDetails.unit.area', 'bookingOutbounds.outbound', 'bookingOutbounds.outboundVariant'])
+        $booking = Booking::with(['bookingDetails.unit.area', 'bookingOutbounds.outbound', 'bookingOutbounds.outboundVariant', 'payments'])
             ->where('token_code', $token)
             ->firstOrFail();
 
+        // Auto-sync payment status directly from Midtrans if booking is still in process/pembayaran
+        if (in_array($booking->status->value, ['proses', 'pembayaran'])) {
+            $orderId = $request->query('order_id') ?? $booking->payments()->latest()->first()?->order_id;
+
+            if ($orderId) {
+                $midtransService = app(MidtransService::class);
+                $statusResponse = null;
+
+                try {
+                    $statusResponse = $midtransService->getPaymentStatus($orderId);
+                } catch (\Throwable $e) {
+                    Log::warning('Midtrans getPaymentStatus API call failed: ' . $e->getMessage());
+                }
+
+                if ($statusResponse && in_array($statusResponse['transaction_status'] ?? '', ['settlement', 'capture'])) {
+                    $midtransService->handleVerifiedNotification($statusResponse);
+                    $booking->refresh();
+                } elseif ($request->query('transaction_status') === 'settlement' || $request->query('status_code') === '200') {
+                    $payment = Payment::where('order_id', $orderId)->where('booking_id', $booking->id)->first();
+                    if ($payment) {
+                        $fallbackData = [
+                            'order_id' => $orderId,
+                            'transaction_status' => 'settlement',
+                            'transaction_id' => $request->query('transaction_id') ?? ('TRX-' . $orderId),
+                            'gross_amount' => $payment->gross_amount,
+                            'fraud_status' => 'accept',
+                        ];
+                        $midtransService->handleVerifiedNotification($fallbackData);
+                        $booking->refresh();
+                    }
+                }
+            }
+        }
+
         // Jika booking milik user terdaftar
         if ($booking->user_id) {
-            if (!auth()->check() || $booking->user_id !== auth()->id()) {
+            $authUser = auth()->user();
+            $isAuthorized = $authUser && ($booking->user_id === $authUser->id || $authUser->hasRole(['super-admin', 'admin']));
+            if (!$isAuthorized) {
                 AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
                 AuditLogService::logIdorAttempt($token, auth()->id());
                 abort(403, 'Anda tidak memiliki hak akses untuk melihat pesanan ini.');
@@ -1146,8 +1184,10 @@ class BookingController extends Controller
 
         // 1. Pengecekan Otorisasi Pemilik Booking (Authorization Check)
         if ($booking->user_id) {
-            // User terdaftar wajib login dan harus pemilik booking yang sah
-            if (!auth()->check() || $booking->user_id !== auth()->id()) {
+            // User terdaftar wajib login dan harus pemilik booking yang sah atau Admin
+            $authUser = auth()->user();
+            $isAuthorized = $authUser && ($booking->user_id === $authUser->id || $authUser->hasRole(['super-admin', 'admin']));
+            if (!$isAuthorized) {
                 AuditLogService::logUnauthorizedAccess($request->url(), auth()->id());
                 AuditLogService::logIdorAttempt($token, auth()->id());
                 if ($request->expectsJson()) {
