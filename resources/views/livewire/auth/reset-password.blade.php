@@ -113,6 +113,27 @@
                             {{ $message }}
                         </p>
                         @enderror
+
+                        <!-- Password Strength Indicator -->
+                        <div class="mt-3 px-1">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-xs font-semibold text-gray-600">Strength: <span id="strength-text" class="text-gray-400 font-normal">Empty</span></span>
+                                <span id="strength-percent" class="text-xs font-bold text-gray-500">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mb-1 overflow-hidden">
+                                <div id="strength-bar" class="bg-gray-300 h-1.5 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2 text-xs text-gray-500 space-y-0.5 pl-1 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                            <p class="font-semibold text-gray-600 mb-1">Password Criteria:</p>
+                            <ul class="list-disc pl-4 space-y-0.5">
+                                <li>Min. 8 characters</li>
+                                <li>Uppercase & lowercase</li>
+                                <li>At least one number</li>
+                                <li>At least one symbol (!@#$%^&*)</li>
+                            </ul>
+                        </div>
                     </div>
 
                     <!-- Confirm Password Input -->
@@ -171,4 +192,84 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle logic
+            document.querySelectorAll('[data-toggle-password]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-toggle-password');
+                    const input = document.getElementById(targetId);
+                    const eyeIcon = document.getElementById('eye-icon-' + targetId);
+
+                    if (input && eyeIcon) {
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.025 10.025 0 012.982-.363c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21m-4.225-4.225L3 3m9 8a3 3 0 013 3" />`;
+                        } else {
+                            input.type = 'password';
+                            eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+                        }
+                    }
+                });
+            });
+
+            // Password strength calculation
+            const passwordInput = document.getElementById('password');
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+            const strengthPercent = document.getElementById('strength-percent');
+
+            if (passwordInput && strengthBar && strengthText && strengthPercent) {
+                passwordInput.addEventListener('input', function() {
+                    const val = this.value;
+                    let score = 0;
+
+                    if (!val) {
+                        strengthBar.style.width = '0%';
+                        strengthBar.className = 'bg-gray-300 h-1.5 rounded-full transition-all duration-300 ease-out';
+                        strengthText.textContent = 'Empty';
+                        strengthText.className = 'text-gray-400 font-normal';
+                        strengthPercent.textContent = '0%';
+                        return;
+                    }
+
+                    if (val.length >= 8) score += 20;
+                    if (/[A-Z]/.test(val)) score += 20;
+                    if (/[a-z]/.test(val)) score += 20;
+                    if (/[0-9]/.test(val)) score += 20;
+                    if (/[^A-Za-z0-9]/.test(val)) score += 20;
+
+                    strengthBar.style.width = score + '%';
+                    strengthPercent.textContent = score + '%';
+
+                    let colorClass = '';
+                    let label = '';
+                    let labelColor = '';
+
+                    if (score <= 25) {
+                        label = 'Weak';
+                        colorClass = 'bg-red-500';
+                        labelColor = 'text-red-600';
+                    } else if (score <= 50) {
+                        label = 'Medium';
+                        colorClass = 'bg-orange-500';
+                        labelColor = 'text-orange-600';
+                    } else if (score <= 75) {
+                        label = 'Good';
+                        colorClass = 'bg-yellow-500';
+                        labelColor = 'text-yellow-600';
+                    } else {
+                        label = 'Strong';
+                        colorClass = 'bg-green-500';
+                        labelColor = 'text-green-600';
+                    }
+
+                    strengthBar.className = colorClass + ' h-1.5 rounded-full transition-all duration-300 ease-out';
+                    strengthText.textContent = label;
+                    strengthText.className = labelColor + ' font-semibold ml-1';
+                });
+            }
+        });
+    </script>
 </x-layouts.auth>
