@@ -15,6 +15,9 @@ Schedule::command('booking:cancel-expired')->everyMinute();
 // Pembersihan otomatis record OTP yang expired (Garbage Collection)
 Schedule::command('model:prune')->daily();
 
+// Pembersihan otomatis Log Aktivitas Keamanan Lama (> 90 hari) sesuai Kebijakan Log Retention SOP ISO 27001
+Schedule::command('audit-log:prune --days=90')->weekly();
+
 // Batalkan otomatis booking dengan status 'proses' atau 'pembayaran' yang sudah lewat 24 jam
 Schedule::call(function () {
     $expiredBookings = Booking::whereIn('status', ['proses', 'pembayaran'])

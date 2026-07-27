@@ -91,7 +91,7 @@
                             <input id="password" name="password" type="password" required
                                 autocomplete="new-password" placeholder="{{ __('Enter new password') }}"
                                 class="block w-full pl-14 sm:pl-16 pr-11 sm:pr-12 py-3 sm:py-3.5 text-sm sm:text-base text-gray-900 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#017249]/20 focus:border-[#017249] transition-all duration-200 placeholder-gray-400 hover:border-gray-300 cursor-text" />
-                            <button type="button" data-toggle-password="password"
+                            <button type="button" onclick="togglePassword('password')"
                                 class="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center hover:scale-110 transition-transform duration-200 cursor-pointer"
                                 aria-label="Toggle password visibility">
                                 <svg id="eye-icon-password" class="w-5 h-5 text-gray-400 hover:text-gray-600"
@@ -113,6 +113,27 @@
                             {{ $message }}
                         </p>
                         @enderror
+
+                        <!-- Password Strength Indicator -->
+                        <div class="mt-3 px-1">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-xs font-semibold text-gray-600">Strength: <span id="strength-text" class="text-gray-400 font-normal">Empty</span></span>
+                                <span id="strength-percent" class="text-xs font-bold text-gray-500">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mb-1 overflow-hidden">
+                                <div id="strength-bar" class="bg-gray-300 h-1.5 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2 text-xs text-gray-500 space-y-0.5 pl-1 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                            <p class="font-semibold text-gray-600 mb-1">Password Criteria:</p>
+                            <ul class="list-disc pl-4 space-y-0.5">
+                                <li>Min. 8 characters</li>
+                                <li>Uppercase & lowercase</li>
+                                <li>At least one number</li>
+                                <li>At least one symbol (!@#$%^&*)</li>
+                            </ul>
+                        </div>
                     </div>
 
                     <!-- Confirm Password Input -->
@@ -133,7 +154,7 @@
                             <input id="password_confirmation" name="password_confirmation" type="password" required
                                 autocomplete="new-password" placeholder="{{ __('Confirm new password') }}"
                                 class="block w-full pl-14 sm:pl-16 pr-11 sm:pr-12 py-3 sm:py-3.5 text-sm sm:text-base text-gray-900 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#017249]/20 focus:border-[#017249] transition-all duration-200 placeholder-gray-400 hover:border-gray-300 cursor-text" />
-                            <button type="button" data-toggle-password="password_confirmation"
+                            <button type="button" onclick="togglePassword('password_confirmation')"
                                 class="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center hover:scale-110 transition-transform duration-200 cursor-pointer"
                                 aria-label="Toggle password confirmation visibility">
                                 <svg id="eye-icon-password_confirmation" class="w-5 h-5 text-gray-400 hover:text-gray-600"
@@ -171,4 +192,86 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Fallback in case auth.js isn't loaded yet
+        if (typeof window.togglePassword !== 'function') {
+            window.togglePassword = function(inputId) {
+                const passwordInput = document.getElementById(inputId);
+                const eyeIcon = document.getElementById('eye-icon-' + inputId);
+                if (!passwordInput || !eyeIcon) return;
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                if (isPassword) {
+                    eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+                } else {
+                    eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+                }
+            };
+        }
+
+        function initPasswordStrength() {
+            const passwordInput = document.getElementById('password');
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+            const strengthPercent = document.getElementById('strength-percent');
+
+            if (passwordInput && strengthBar && strengthText && strengthPercent) {
+                passwordInput.addEventListener('input', function() {
+                    const val = this.value;
+                    let score = 0;
+
+                    if (!val) {
+                        strengthBar.style.width = '0%';
+                        strengthBar.className = 'bg-gray-300 h-1.5 rounded-full transition-all duration-300 ease-out';
+                        strengthText.textContent = 'Empty';
+                        strengthText.className = 'text-gray-400 font-normal';
+                        strengthPercent.textContent = '0%';
+                        return;
+                    }
+
+                    if (val.length >= 8) score += 20;
+                    if (/[A-Z]/.test(val)) score += 20;
+                    if (/[a-z]/.test(val)) score += 20;
+                    if (/[0-9]/.test(val)) score += 20;
+                    if (/[^A-Za-z0-9]/.test(val)) score += 20;
+
+                    strengthBar.style.width = score + '%';
+                    strengthPercent.textContent = score + '%';
+
+                    let colorClass = '';
+                    let label = '';
+                    let labelColor = '';
+
+                    if (score <= 25) {
+                        label = 'Weak';
+                        colorClass = 'bg-red-500';
+                        labelColor = 'text-red-600';
+                    } else if (score <= 50) {
+                        label = 'Medium';
+                        colorClass = 'bg-orange-500';
+                        labelColor = 'text-orange-600';
+                    } else if (score <= 75) {
+                        label = 'Good';
+                        colorClass = 'bg-yellow-500';
+                        labelColor = 'text-yellow-600';
+                    } else {
+                        label = 'Strong';
+                        colorClass = 'bg-green-500';
+                        labelColor = 'text-green-600';
+                    }
+
+                    strengthBar.className = colorClass + ' h-1.5 rounded-full transition-all duration-300 ease-out';
+                    strengthText.textContent = label;
+                    strengthText.className = labelColor + ' font-semibold ml-1';
+                });
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPasswordStrength);
+        } else {
+            initPasswordStrength();
+        }
+    </script>
 </x-layouts.auth>
