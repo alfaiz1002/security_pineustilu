@@ -91,7 +91,7 @@
                             <input id="password" name="password" type="password" required
                                 autocomplete="new-password" placeholder="{{ __('Enter new password') }}"
                                 class="block w-full pl-14 sm:pl-16 pr-11 sm:pr-12 py-3 sm:py-3.5 text-sm sm:text-base text-gray-900 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#017249]/20 focus:border-[#017249] transition-all duration-200 placeholder-gray-400 hover:border-gray-300 cursor-text" />
-                            <button type="button" onclick="togglePasswordVisibility('password')" data-toggle-password="password"
+                            <button type="button" onclick="togglePassword('password')"
                                 class="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center hover:scale-110 transition-transform duration-200 cursor-pointer"
                                 aria-label="Toggle password visibility">
                                 <svg id="eye-icon-password" class="w-5 h-5 text-gray-400 hover:text-gray-600"
@@ -154,7 +154,7 @@
                             <input id="password_confirmation" name="password_confirmation" type="password" required
                                 autocomplete="new-password" placeholder="{{ __('Confirm new password') }}"
                                 class="block w-full pl-14 sm:pl-16 pr-11 sm:pr-12 py-3 sm:py-3.5 text-sm sm:text-base text-gray-900 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#017249]/20 focus:border-[#017249] transition-all duration-200 placeholder-gray-400 hover:border-gray-300 cursor-text" />
-                            <button type="button" onclick="togglePasswordVisibility('password_confirmation')" data-toggle-password="password_confirmation"
+                            <button type="button" onclick="togglePassword('password_confirmation')"
                                 class="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center hover:scale-110 transition-transform duration-200 cursor-pointer"
                                 aria-label="Toggle password confirmation visibility">
                                 <svg id="eye-icon-password_confirmation" class="w-5 h-5 text-gray-400 hover:text-gray-600"
@@ -194,18 +194,20 @@
     </div>
 
     <script>
-        function togglePasswordVisibility(fieldId) {
-            const input = document.getElementById(fieldId);
-            const eyeIcon = document.getElementById('eye-icon-' + fieldId);
-            if (!input || !eyeIcon) return;
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.025 10.025 0 012.982-.363c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21m-4.225-4.225L3 3m9 8a3 3 0 013 3" />`;
-            } else {
-                input.type = 'password';
-                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
-            }
+        // Fallback in case auth.js isn't loaded yet
+        if (typeof window.togglePassword !== 'function') {
+            window.togglePassword = function(inputId) {
+                const passwordInput = document.getElementById(inputId);
+                const eyeIcon = document.getElementById('eye-icon-' + inputId);
+                if (!passwordInput || !eyeIcon) return;
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                if (isPassword) {
+                    eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+                } else {
+                    eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+                }
+            };
         }
 
         function initPasswordStrength() {
