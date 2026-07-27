@@ -228,11 +228,8 @@ class DetailPesanan {
         // Close modal
         this.closeSnapModal();
 
-        // Show success message
-        alert('Payment successful! Your booking has been confirmed.');
-
-        // Update booking status to berhasil
-        this.updateBookingStatus('berhasil');
+        // Reload page to trigger server-side Midtrans payment verification & render Confirmed view
+        window.location.reload();
     }
 
     /**
@@ -240,7 +237,8 @@ class DetailPesanan {
      */
     onPaymentPending(result) {
         console.log('Payment pending:', result);
-        alert('Payment is being processed. Please wait...');
+        this.closeSnapModal();
+        window.location.reload();
     }
 
     /**
