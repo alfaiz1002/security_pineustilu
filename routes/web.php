@@ -17,6 +17,7 @@ use App\Livewire\Settings\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Artisan;
 
 Route::view('/cerita', 'cerita')->name('cerita');
 
@@ -208,5 +209,13 @@ Route::get('/dev/benchmark-otp/csv', function (\Illuminate\Http\Request $request
 });
 
 
+Route::get('/internal/benchmark-otp/{token}', function (string $token) {
+    if (! hash_equals((string) config('app.benchmark_token'), $token)) {
+        abort(404); // 404, bukan 403, supaya route ini tidak "mengaku" ada
+    }
 
+    Artisan::call('benchmark:otp', ['iterations' => 50]);
+
+    return response(Artisan::output())->header('Content-Type', 'text/plain');
+});
 
