@@ -214,7 +214,10 @@ Route::get('/internal/benchmark-otp/{token}', function (string $token) {
         abort(404); // 404, bukan 403, supaya route ini tidak "mengaku" ada
     }
 
-    Artisan::call('benchmark:otp', ['iterations' => 50]);
+    @set_time_limit(300);
+    @ini_set('max_execution_time', '300');
+
+    Artisan::call('benchmark:otp', ['--iterations' => 50]);
 
     return response(Artisan::output())->header('Content-Type', 'text/plain');
 });

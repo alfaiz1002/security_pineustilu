@@ -10,12 +10,12 @@ use OTPHP\TOTP;
 
 class BenchmarkOtp extends Command
 {
-    protected $signature = 'benchmark:otp {iterations=50}';
+    protected $signature = 'benchmark:otp {--iterations=50}';
     protected $description = 'Benchmark Stateful Random OTP vs HOTP vs TOTP vs OCRA';
 
     public function handle(): void
     {
-        $n = (int) $this->argument('iterations');
+        $n = (int) $this->option('iterations');
         $secretHex = bin2hex(random_bytes(20)); // kunci 160-bit, standar OATH
 
         $results = [
