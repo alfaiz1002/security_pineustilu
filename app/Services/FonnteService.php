@@ -24,7 +24,16 @@ class FonnteService
             return false;
         }
 
-        $message = "Kode OTP Anda adalah: {$otp}. Berlaku selama 15 menit. Jangan berikan kode ini ke siapa pun.";
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+        $isIndonesian = str_starts_with($cleanPhone, '08') || str_starts_with($cleanPhone, '62') || str_starts_with($cleanPhone, '8');
+
+        if ($isIndonesian) {
+            // Indonesian Gen-Z Aesthetic Style
+            $message = "🏕️ *Pineus Tilu Camping Ground*\n\nSpill kode OTP kamu nih:\n🔑 *{$otp}*\n\n⏳ Berlaku *15 menit* ya!\nJangan di-share ke siapa-siapa demi keamanan akun kamu.\n\nHappy camping vibes! 🌲🔥✨";
+        } else {
+            // International Tourist English Style
+            $message = "🏕️ *Pineus Tilu Camping Ground*\n\nHere is your verification code (OTP):\n🔑 *{$otp}*\n\n⏳ Valid for *15 minutes*.\nDo not share this code with anyone for security.\n\nHappy camping vibes! 🌲🔥✨";
+        }
 
         try {
             $response = Http::withHeaders([
@@ -32,7 +41,7 @@ class FonnteService
             ])->post('https://api.fonnte.com/send', [
                 'target' => $phone,
                 'message' => $message,
-                'countryCode' => '62', // Ensures international format for Indonesian numbers
+                'countryCode' => '62', // Ensures international format for Indonesian numbers starting with 0
             ]);
 
             if ($response->successful()) {
