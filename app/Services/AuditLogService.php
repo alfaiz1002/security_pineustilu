@@ -33,6 +33,25 @@ class AuditLogService
                 'ip_address'  => $ipAddress,
                 'severity'   => $severity,
             ]);
+
+            // Trigger Telegram Security Alert for CRITICAL or WARNING events
+            $upperSeverity = strtoupper($severity);
+            if ($upperSeverity === 'CRITICAL' || ($upperSeverity === 'WARNING' && in_array($event, ['whatsapp_otp_failed', 'injection_attempt', 'ssrf_attempt', 'brute_force', 'idor_attempt', 'csp_violation']))) {
+                $deviceInfo = UserAgentParser::parse(request()?->userAgent());
+                $url = request()?->fullUrl() ?? 'N/A';
+                
+                $telegramMsg = "🚨 *ALERT KEAMANAN PINEUS TILU* 🚨\n\n" .
+                               "• *Level*: `{$upperSeverity}`\n" .
+                               "• *Event*: `{$event}`\n" .
+                               "• *Detail*: {$description}\n" .
+                               "• *URL Target*: `{$url}`\n" .
+                               "• *IP Penyerang*: `{$ipAddress}`\n" .
+                               "• *Perangkat*: {$deviceInfo}\n" .
+                               "• *Waktu*: " . date('d F Y, H:i:s') . " WIB\n\n" .
+                               "Status: *Berhasil Dicatat & Ditangani Sistem* 🛡️";
+
+                TelegramService::sendAlert($telegramMsg);
+            }
         } catch (\Throwable $e) {
             // Jangan biarkan kegagalan logging menghentikan jalannya aplikasi
             Log::error('AuditLogService failed to write activity log', [
