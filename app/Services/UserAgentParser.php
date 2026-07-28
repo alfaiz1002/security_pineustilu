@@ -51,23 +51,6 @@ class UserAgentParser
         return "{$browser} pada {$os} ({$deviceType})";
     }
 
-    /**
-     * Remove emojis from text for formal PDF SOP documents.
-     */
-    public static function stripEmojis(?string $string): string
-    {
-        if (empty($string)) return '';
-        $clean = preg_replace('/[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}\x{1F900}-\x{1F9FF}\x{1F1E6}-\x{1F1FF}]/u', '', $string);
-        return trim(preg_replace('/\s+/', ' ', $clean));
-    }
-
-    /**
-     * Plain text User-Agent parser for PDF SOP reports (100% no emojis).
-     */
-    public static function parsePlain(?string $userAgent): string
-    {
-        return self::stripEmojis(self::parse($userAgent));
-    }
 
     /**
      * Get Geo Details (Country Code & Location Name) for IP Address.
@@ -139,13 +122,6 @@ class UserAgentParser
         return "{$ip} ({$details['location']})";
     }
 
-    /**
-     * Plain text IP formatting for PDF SOP reports (100% no emojis).
-     */
-    public static function formatIpPlain(?string $ip): string
-    {
-        return self::stripEmojis(self::formatIp($ip));
-    }
 
     /**
      * Format IP address with HTML SVG/PNG Flag image icon for Filament Infolist.
