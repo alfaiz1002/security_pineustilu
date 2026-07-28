@@ -89,4 +89,15 @@ class User extends Authenticatable implements FilamentUser
         // Only super-admin and admin can access the admin panel
         return $this->hasRole(['super-admin', 'admin']);
     }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
 }
