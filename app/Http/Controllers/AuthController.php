@@ -32,7 +32,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users'],
             'phone' => ['required', 'string', 'regex:/^\+?[1-9]\d{7,15}$/', 'unique:users'],
             'password' => [
                 'required',
