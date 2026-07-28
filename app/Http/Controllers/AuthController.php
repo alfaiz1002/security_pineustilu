@@ -71,7 +71,7 @@ class AuthController extends Controller
 
         // Generate OTP
         $otp = (string) random_int(100000, 999999);
-        
+
         OtpVerification::create([
             'phone_number' => $user->phone,
             'otp_hash' => Hash::make($otp),
@@ -144,7 +144,7 @@ class AuthController extends Controller
 
         // Generate OTP
         $otp = (string) random_int(100000, 999999);
-        
+
         OtpVerification::create([
             'phone_number' => $user->phone,
             'otp_hash' => Hash::make($otp),

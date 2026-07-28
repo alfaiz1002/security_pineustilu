@@ -42,18 +42,18 @@ class RegisterRequest extends FormRequest
             'name.required' => 'Full name is required.',
             'name.string' => 'Name must be text.',
             'name.max' => 'Name maximum 255 characters.',
-            
+
             'email.required' => 'Email is required.',
             'email.email' => 'Invalid email format.',
             'email.unique' => 'Email is already registered.',
-            
+
             'country_code.required' => 'Country code is required.',
-            
+
             'phone.required' => 'Phone number is required.',
             'phone.min' => 'Phone number minimum 8 digits.',
             'phone.max' => 'Phone number maximum 13 digits.',
             'phone.regex' => 'Phone number can only contain numbers.',
-            
+
             'password.required' => 'Password is required.',
             'password.confirmed' => 'Password confirmation does not match.',
             'password.min' => 'Password minimum 8 characters.',
