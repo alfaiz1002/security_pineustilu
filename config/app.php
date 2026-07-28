@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'benchmark_token' => env('BENCHMARK_TOKEN'),
+
+
 ];

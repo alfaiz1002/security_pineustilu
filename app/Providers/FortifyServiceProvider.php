@@ -64,9 +64,12 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $email = Str::lower($request->input(Fortify::username(), ''));
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return [
+                Limit::perMinutes(15, 5)->by('login_ip|' . $request->ip()),
+                Limit::perMinutes(15, 5)->by('login_email|' . ($email ?: 'guest')),
+            ];
         });
     }
 }

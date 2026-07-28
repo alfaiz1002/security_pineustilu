@@ -17,12 +17,24 @@ use App\Livewire\Settings\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Artisan;
 
 Route::view('/cerita', 'cerita')->name('cerita');
 
 Route::view('/', 'dashboard')->name('home');
 
 Route::view('dashboard', 'dashboard')->name('dashboard');
+
+// Temporary route to inspect laravel.log on Render
+Route::get('/show-logs-xyz', function () {
+    $path = storage_path('logs/laravel.log');
+    if (!file_exists($path)) {
+        return response('No log file found.', 404);
+    }
+    $lines = file($path);
+    $lastLines = array_slice($lines, -150);
+    return response(implode("", $lastLines), 200, ['Content-Type' => 'text/plain']);
+});
 
 // Cabin VIP/VVIP routes
 Route::get('/cabin/vip', [AreaController::class, 'show'])->defaults('slug', 'pineus-tilu-cabin')->name('cabin.vip');
@@ -201,5 +213,16 @@ Route::get('/dev/benchmark-otp/csv', function (\Illuminate\Http\Request $request
 });
 
 
+Route::get('/internal/benchmark-otp/{token}', function (string $token) {
+    if (! hash_equals((string) config('app.benchmark_token'), $token)) {
+        abort(404); // 404, bukan 403, supaya route ini tidak "mengaku" ada
+    }
 
+    @set_time_limit(300);
+    @ini_set('max_execution_time', '300');
+
+    Artisan::call('benchmark:otp', ['--iterations' => 50]);
+
+    return response(Artisan::output())->header('Content-Type', 'text/plain');
+});
 
