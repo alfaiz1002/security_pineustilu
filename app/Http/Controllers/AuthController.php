@@ -41,7 +41,8 @@ class AuthController extends Controller
                     ->letters()
                     ->mixedCase()
                     ->numbers()
-                    ->symbols(),
+                    ->symbols()
+                    ->uncompromised(),
                 'confirmed',
             ],
             'otp_method' => ['nullable', 'in:whatsapp,email'],
