@@ -59,9 +59,11 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA') && file_exists(env('MYSQL_ATTR_SSL_CA')) 
-                    ? env('MYSQL_ATTR_SSL_CA') 
-                    : base_path('database/certs/aiven-ca.pem'),
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA') 
+                    ? (file_exists(env('MYSQL_ATTR_SSL_CA')) ? env('MYSQL_ATTR_SSL_CA') : (file_exists(base_path(env('MYSQL_ATTR_SSL_CA'))) ? base_path(env('MYSQL_ATTR_SSL_CA')) : null))
+                    : (in_array(env('DB_HOST', '127.0.0.1'), ['127.0.0.1', 'localhost']) 
+                        ? null 
+                        : (file_exists(base_path('database/certs/aiven-ca.pem')) ? base_path('database/certs/aiven-ca.pem') : null)),
             ]) : [],
         ],
 
@@ -81,9 +83,11 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA') && file_exists(env('MYSQL_ATTR_SSL_CA')) 
-                    ? env('MYSQL_ATTR_SSL_CA') 
-                    : base_path('database/certs/aiven-ca.pem'),
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA') 
+                    ? (file_exists(env('MYSQL_ATTR_SSL_CA')) ? env('MYSQL_ATTR_SSL_CA') : (file_exists(base_path(env('MYSQL_ATTR_SSL_CA'))) ? base_path(env('MYSQL_ATTR_SSL_CA')) : null))
+                    : (in_array(env('DB_HOST', '127.0.0.1'), ['127.0.0.1', 'localhost']) 
+                        ? null 
+                        : (file_exists(base_path('database/certs/aiven-ca.pem')) ? base_path('database/certs/aiven-ca.pem') : null)),
             ]) : [],
         ],
 
